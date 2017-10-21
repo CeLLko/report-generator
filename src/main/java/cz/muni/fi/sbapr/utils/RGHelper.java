@@ -51,6 +51,7 @@ public enum RGHelper {
 
     private Map<String, Class> dataSources;
     private Map<String, XSLFSlideLayout> layouts;
+    private XMLSlideShow template;
 
     public void parse(ZipFile zipFile) throws IOException {
         ZipEntry xmlEntry = zipFile.getEntry("report-template.xml");
@@ -88,7 +89,7 @@ public enum RGHelper {
             doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(zipFile.getInputStream(xmlEntry));
             doc.getDocumentElement().normalize();
 
-            XMLSlideShow template = new XMLSlideShow(zipFile.getInputStream(pptxEntry));
+            template = new XMLSlideShow(zipFile.getInputStream(pptxEntry));
             parseLayouts(template);
             parseDataSources();
             initialized = true;
@@ -166,6 +167,11 @@ public enum RGHelper {
     public XSLFSlideLayout getLayout(String name) {
         return layouts.get(name);
     }
+    
+    public XMLSlideShow getTemplate() {
+        return template;
+    }
+
 
     public IterableNodeList getNodeList(String expression) {
         NodeList nodeList = null;

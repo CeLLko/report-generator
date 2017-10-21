@@ -22,9 +22,9 @@ public class ComboBoxLayoutModel extends AbstractListModel implements ComboBoxMo
     private final String[] layoutNames;
     private XSLFSlideLayout selectedLayout = null;
 
-    public ComboBoxLayoutModel(){
+    public ComboBoxLayoutModel(XSLFSlideLayout defaultLayout){
         layoutNames = RGHelper.INSTANCE.getLayoutNames();
-        selectedLayout = RGHelper.INSTANCE.getLayout(layoutNames[0]);
+        selectedLayout = defaultLayout;
     }
     
     @Override

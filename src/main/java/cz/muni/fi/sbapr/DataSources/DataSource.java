@@ -5,9 +5,9 @@
  */
 package cz.muni.fi.sbapr.DataSources;
 
-import org.apache.poi.xslf.usermodel.XSLFSlide;
 import org.apache.poi.xslf.usermodel.XSLFShape;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 /**
  * The datasource superclass
@@ -20,13 +20,14 @@ public abstract class DataSource<T>{
     protected DataSource(Element element){
         this.element = element;
     }
-            
+    
     public abstract T getData();
     
-    public abstract XSLFShape updateShape(XSLFSlide slide, XSLFShape shape);
+    public abstract XSLFShape updateShape(XSLFShape shape);
     
     
     protected String getAttribute(String name){
-        return element.getElementsByTagName(name).item(0).getTextContent();
+        Node node = element.getElementsByTagName(name).item(0);
+        return node == null ? null : node.getTextContent();
     }
 }

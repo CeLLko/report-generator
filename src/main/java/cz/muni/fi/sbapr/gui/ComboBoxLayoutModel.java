@@ -17,16 +17,16 @@ import org.apache.xmlbeans.XmlException;
  *
  * @author Adam
  */
-public class ComboBoxLayoutModel extends AbstractListModel implements ComboBoxModel{
-    
+public class ComboBoxLayoutModel extends AbstractListModel implements ComboBoxModel {
+
     private final String[] layoutNames;
     private XSLFSlideLayout selectedLayout = null;
 
-    public ComboBoxLayoutModel(XSLFSlideLayout defaultLayout){
+    public ComboBoxLayoutModel(XSLFSlideLayout defaultLayout) {
         layoutNames = RGHelper.INSTANCE.getLayoutNames();
-        selectedLayout = defaultLayout;
+        this.setSelectedItem(defaultLayout);
     }
-    
+
     @Override
     public int getSize() {
         return layoutNames.length;
@@ -42,22 +42,30 @@ public class ComboBoxLayoutModel extends AbstractListModel implements ComboBoxMo
         selectedLayout = (XSLFSlideLayout) anItem;
     }
 
+    public void setSelectedItem(String name) {
+        setSelectedItem((XSLFSlideLayout) RGHelper.INSTANCE.getLayout(name));
+    }
+
     @Override
     public Object getSelectedItem() {
         return selectedLayout;
     }
-    
-    private class XSLFSlideLayoutString extends XSLFSlideLayout{
+
+    public String getSelectedItemName() {
+        return RGHelper.INSTANCE.getLayouts().keySet().stream().filter(key -> RGHelper.INSTANCE.getLayout((String) key).equals(selectedLayout)).findFirst().get();
+    }
+
+    private class XSLFSlideLayoutString extends XSLFSlideLayout {
 
         public XSLFSlideLayoutString(PackagePart part) throws IOException, XmlException {
             super(part);
         }
-        
+
         @Override
-        public String toString(){
+        public String toString() {
             return getName();
         }
-        
+
     }
-    
+
 }

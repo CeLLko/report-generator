@@ -68,13 +68,13 @@ public class NagiosGraphDataSource extends DataSource<byte[]> {
     }
 
     @Override
-    public XSLFShape updateShape(XSLFSlide slide, XSLFShape shape) {
+    public XSLFShape updateShape(XSLFShape shape) {
         XSLFPictureShape picture = null;
         XSLFPictureData idx = Presentation.INSTANCE.getPPTX().addPicture(getData(), XSLFPictureData.PictureType.PNG);
-        picture = slide.createPicture(idx);
+        picture = shape.getSheet().createPicture(idx);
 
         Rectangle2D anchor = shape.getAnchor();
-        slide.removeShape(shape);
+        shape.getSheet().removeShape(shape);
         picture.setAnchor(anchor);
         return shape;
     }

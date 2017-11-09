@@ -21,7 +21,6 @@ import javax.imageio.ImageIO;
 import org.apache.poi.xslf.usermodel.XSLFPictureData;
 import org.apache.poi.xslf.usermodel.XSLFPictureShape;
 import org.apache.poi.xslf.usermodel.XSLFShape;
-import org.apache.poi.xslf.usermodel.XSLFSlide;
 import org.w3c.dom.Element;
 
 public class IMGDataSource extends DataSource<BufferedImage> {
@@ -67,7 +66,7 @@ public class IMGDataSource extends DataSource<BufferedImage> {
     }
 
     @Override
-    public XSLFShape updateShape(XSLFSlide slide, XSLFShape shape) {
+    public XSLFShape updateShape(XSLFShape shape) {
         XSLFPictureShape picture = null;
         try {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -75,14 +74,14 @@ public class IMGDataSource extends DataSource<BufferedImage> {
             byte[] pictureData = baos.toByteArray();
             
             XSLFPictureData idx = Presentation.INSTANCE.getPPTX().addPicture(pictureData, XSLFPictureData.PictureType.PNG);
-            picture = slide.createPicture(idx);
+            picture = shape.getSheet().createPicture(idx);
 
             Rectangle2D anchor = shape.getAnchor();
-            slide.removeShape(shape);
+            shape.getSheet().removeShape(shape);
             picture.setAnchor(anchor);
         } catch (IOException ex) {
             Logger.getLogger(IMGDataSource.class.getName()).log(Level.SEVERE, null, ex);
         }
-        return shape;
+        return picture;
     }
 }

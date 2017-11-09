@@ -46,7 +46,7 @@ public class MethodDataSource extends DataSource<String>{
     }
 
     @Override
-    public XSLFShape updateShape(XSLFSlide slide, XSLFShape shape) {
+    public XSLFShape updateShape( XSLFShape shape) {
         ((XSLFTextShape) shape).clearText();
         ((XSLFTextShape) shape).appendText(this.getData(), false);
         return shape;

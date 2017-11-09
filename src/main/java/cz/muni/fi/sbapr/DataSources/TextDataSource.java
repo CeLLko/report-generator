@@ -39,7 +39,7 @@ public class TextDataSource extends DataSource<String>{
     }
 
     @Override
-    public XSLFShape updateShape(XSLFSlide slide, XSLFShape shape) {
+    public XSLFShape updateShape(XSLFShape shape) {
         ((XSLFTextShape) shape).clearText();
         lines.stream().forEach(line -> ((XSLFTextShape) shape).appendText(line, true));
         return shape;

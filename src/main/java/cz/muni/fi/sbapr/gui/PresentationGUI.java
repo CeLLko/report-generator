@@ -6,16 +6,19 @@
 package cz.muni.fi.sbapr.gui;
 
 import cz.muni.fi.sbapr.Slide;
+import cz.muni.fi.sbapr.utils.IterableNodeList;
 import cz.muni.fi.sbapr.utils.RGHelper;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import java.util.zip.ZipFile;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
@@ -33,7 +36,44 @@ public enum PresentationGUI {
         this.slideTable = slideTable;
     }
     private XMLSlideShow template;
-    private List<Slide> slides = new ArrayList<>();;
+    private List<Slide> slides = new ArrayList() {
+        
+        @Override
+        public Object set(int index, Object element){
+            Slide slide = (Slide) get(index);
+            slide.getElement().getParentNode().replaceChild(((Slide) element).getElement(), slide.getElement());
+            return super.set(index, element);
+        }
+        
+        @Override
+        public boolean add(Object element) {
+            boolean res = super.add(element);
+            int row = super.indexOf(element);
+            if (res) {
+                PresentationGUI.INSTANCE.slideTable.fireTableRowsInserted(row, row);
+                RGHelper.INSTANCE.getNodeListByName("slides").get(0).appendChild(((Slide) element).getElement());
+            }
+            return res;
+        }
+
+        @Override
+        public boolean remove(Object element) {
+            int row = super.indexOf(element);
+            boolean res = super.remove(element);
+            if (res) {
+                PresentationGUI.INSTANCE.slideTable.fireTableRowsDeleted(row, row);
+                RGHelper.INSTANCE.getNodeListByName("slides").get(0).removeChild(((Slide) element).getElement());
+            }
+            return res;
+        }
+
+        @Override
+        public void clear() {
+            super.clear();
+            PresentationGUI.INSTANCE.slideTable.fireTableDataChanged();
+            new IterableNodeList(RGHelper.INSTANCE.getNodeListByName("slides").get(0).getChildNodes()).forEach(node -> node.getParentNode().removeChild(node));
+        }
+    };
     private SlidesTableModel slideTable;
     private JFrame window;
     private boolean changed = false;
@@ -54,9 +94,7 @@ public enum PresentationGUI {
         } catch (IOException ex) {
             Logger.getLogger(PresentationGUI.class.getName()).log(Level.SEVERE, null, ex);
         }
-        RGHelper.INSTANCE.parseSlides().forEach(slide -> {
-            slides.add(slide);
-        });
+        slides.addAll(RGHelper.INSTANCE.parseSlides());
         slideTable.fireTableDataChanged();
     }
 
@@ -67,11 +105,10 @@ public enum PresentationGUI {
     public boolean isChanged() {
         return changed;
     }
-    
+
     void setMainWindow(JFrame window) {
         this.window = window;
     }
-
 
     public void createSlide() {
         CreateSlideWorker createSlideWorker = new CreateSlideWorker();
@@ -88,7 +125,7 @@ public enum PresentationGUI {
 
         @Override
         protected Slide doInBackground() throws Exception {
-            JDialog slideWizard = new SlideEditDialog(window, slide);
+            JDialog slideWizard = new SlideEditDialog(window, slide, true);
             slideWizard.pack();
             slideWizard.setVisible(true);
             PresentationGUI.INSTANCE.getSlides().add(slide);
@@ -98,35 +135,36 @@ public enum PresentationGUI {
         protected void done() {
             try {
                 get();
-                int row = PresentationGUI.INSTANCE.getSlides().size() - 1;
-                PresentationGUI.INSTANCE.slideTable.fireTableRowsInserted(row, row);
             } catch (InterruptedException | ExecutionException ex) {
                 Logger.getLogger(SlidesTableModel.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
     }
 
-    public void deleteSlide(int row) {
-        if (row != -1) {
-            DeleteSlideWorker deleteSlideWorker = new DeleteSlideWorker(row);
+    public void deleteSlide(int[] rows) {
+        if (rows[0] != -1) {
+            DeleteSlideWorker deleteSlideWorker = new DeleteSlideWorker(rows);
             deleteSlideWorker.execute();
         }
     }
 
     public class DeleteSlideWorker extends SwingWorker<Boolean, Void> {
 
-        private int row;
+        private final List<Integer> rows;
         private boolean result = true;
 
-        public DeleteSlideWorker(int row) {
-            this.row = row;
+        public DeleteSlideWorker(int[] rows) {
+            this.rows = new ArrayList<>(Arrays.stream(rows).boxed().collect(Collectors.toList()));
+            Collections.sort(this.rows);
         }
 
         @Override
         protected Boolean doInBackground() throws Exception {
             try {
-                Slide slide = PresentationGUI.INSTANCE.getSlides().get(row);
-                PresentationGUI.INSTANCE.getSlides().remove(slide);
+                rows.forEach(row -> {
+                    Slide slide = PresentationGUI.INSTANCE.getSlides().get(row);
+                    PresentationGUI.INSTANCE.getSlides().remove(slide);
+                });
                 //slide.getDialog().dispose();
             } catch (ArrayIndexOutOfBoundsException e) {
                 result = false;
@@ -136,7 +174,6 @@ public enum PresentationGUI {
 
         @Override
         protected void done() {
-            PresentationGUI.INSTANCE.slideTable.fireTableRowsDeleted(row, row);
         }
 
     }
@@ -167,8 +204,6 @@ public enum PresentationGUI {
         protected void done() {
             try {
                 get();
-                int row = PresentationGUI.INSTANCE.getSlides().size() - 1;
-                PresentationGUI.INSTANCE.slideTable.fireTableRowsInserted(row, row);
             } catch (InterruptedException | ExecutionException ex) {
                 Logger.getLogger(SlidesTableModel.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -198,11 +233,12 @@ public enum PresentationGUI {
             Slide slide = PresentationGUI.INSTANCE.getSlides().get(fromRow);
             try {
                 Collections.swap(PresentationGUI.INSTANCE.getSlides(), fromRow, toRow);
+                
             } catch (ArrayIndexOutOfBoundsException e) {
                 result = false;
             }
             return result;
-    }
+        }
 
         @Override
         protected void done() {
@@ -211,25 +247,25 @@ public enum PresentationGUI {
 
     }
 
-    public void updateSlide(int row, SlideGUI slide) {
-        UpdateSlideWorker updateSlideWorker = new UpdateSlideWorker(row, slide);
+    public void updateSlide(int row) {
+        UpdateSlideWorker updateSlideWorker = new UpdateSlideWorker(row);
         updateSlideWorker.execute();
     }
 
     public class UpdateSlideWorker extends SwingWorker<Boolean, Void> {
 
         private final int row;
-        private final SlideGUI slide;
+        private final Slide slide;
         private boolean result = true;
 
-        public UpdateSlideWorker(int row, SlideGUI slide) {
+        public UpdateSlideWorker(int row) {
             this.row = row;
-            this.slide = slide;
+            this.slide = slides.get(row);
         }
 
         @Override
         protected Boolean doInBackground() throws Exception {
-            JDialog slideWizard = new SlideEditDialog(window, slide);
+            JDialog slideWizard = new SlideEditDialog(window, slide, false);
             slideWizard.pack();
             slideWizard.setVisible(true);
             return result;
@@ -244,6 +280,5 @@ public enum PresentationGUI {
 
     public void clearSlidesTable() {
         PresentationGUI.INSTANCE.getSlides().clear();
-        PresentationGUI.INSTANCE.slideTable.fireTableDataChanged();
     }
 }

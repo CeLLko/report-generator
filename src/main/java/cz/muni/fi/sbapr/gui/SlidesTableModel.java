@@ -31,7 +31,7 @@ public class SlidesTableModel extends AbstractTableModel {
             case 0:
                 return rowIndex;
             case 1:
-                return slide.getClass();
+                return slide.getDescription();
             default:
                 throw new IllegalArgumentException("column index out of bounds");
         }

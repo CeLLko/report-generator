@@ -6,7 +6,6 @@
 package cz.muni.fi.sbapr.DataSources;
 
 import org.apache.poi.xslf.usermodel.XSLFShape;
-import org.apache.poi.xslf.usermodel.XSLFSlide;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -21,10 +20,10 @@ import org.w3c.dom.Element;
  */
 public class PostgreSQLDataSource extends DataSource<String> {
 
-    private String db;
-    private String user;
-    private String pass;
-    private String statement;
+    private final String db;
+    private final String user;
+    private final String pass;
+    private final String statement;
     
     public PostgreSQLDataSource(Element element) {
         super(element);
@@ -33,9 +32,9 @@ public class PostgreSQLDataSource extends DataSource<String> {
         this.pass = "123456";*/
         this.statement = "SELECT currency FROM \"public\".\"MOCK_DATA\" WHERE id=1";
         
-        this.db = "jdbc:postgresql://"+getAttribute("server")+":"+getAttribute("port")+"/"+getAttribute("database");
+        this.db = "jdbc:postgresql://"+getAttribute("server")+":"+getAttribute("port")+"/"+getAttribute("db");
         this.user = getAttribute("user");
-        this.pass = getAttribute("password");
+        this.pass = getAttribute("pass");
         //this.statement = getAttribute("statement");
     }
 
@@ -66,7 +65,7 @@ public class PostgreSQLDataSource extends DataSource<String> {
     }
 
     @Override
-    public XSLFShape updateShape(XSLFSlide slide, XSLFShape shape) {
+    public XSLFShape updateShape(XSLFShape shape) {
         ((XSLFTextShape) shape).clearText();
         ((XSLFTextShape) shape).appendText(getData(), false);
         return shape;

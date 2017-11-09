@@ -2,12 +2,16 @@ package cz.muni.fi.sbapr.gui;
 
 import cz.muni.fi.sbapr.Slide;
 import cz.muni.fi.sbapr.utils.RGHelper;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipFile;
 import javax.swing.JFileChooser;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 /*
@@ -70,7 +74,14 @@ public class MainWindow extends javax.swing.JFrame {
         jScrollPane1.setPreferredSize(new java.awt.Dimension(600, 400));
 
         slidesTable.setModel(new SlidesTableModel());
-        slidesTable.setRowHeight(40);
+        slidesTable.setRowHeight(30);
+        slidesTable.addMouseListener(new MouseAdapter(){
+            public void mouseClicked(MouseEvent e){
+                if (e.getClickCount() == 2){
+                    PresentationGUI.INSTANCE.updateSlide(slidesTable.getSelectedRow());
+                }
+            }
+        });
         jScrollPane1.setViewportView(slidesTable);
         if (slidesTable.getColumnModel().getColumnCount() > 0) {
             slidesTable.getColumnModel().getColumn(0).setMinWidth(40);
@@ -164,6 +175,11 @@ public class MainWindow extends javax.swing.JFrame {
                 buttonEditMouseReleased(evt);
             }
         });
+        buttonEdit.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonEditActionPerformed(evt);
+            }
+        });
         jToolBar1.add(buttonEdit);
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
@@ -182,6 +198,11 @@ public class MainWindow extends javax.swing.JFrame {
         getContentPane().add(jPanel1, java.awt.BorderLayout.PAGE_END);
 
         jMenu1.setText("File");
+        jMenu1.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jMenu1MouseClicked(evt);
+            }
+        });
 
         FileMenuNew.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_N, java.awt.event.InputEvent.CTRL_MASK));
         FileMenuNew.setText("New XML");
@@ -239,12 +260,12 @@ public class MainWindow extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void buttonAddMouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_buttonAddMouseReleased
-        //((SlidesTableModel) slidesTable.getModel()).createSlide(new Node slideNode, ++i, "nagios.gdovin.eu/nagiosgraph");
+        PresentationGUI.INSTANCE.createSlide();
     }//GEN-LAST:event_buttonAddMouseReleased
 
     private void buttonDeleteMouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_buttonDeleteMouseReleased
         try {
-            PresentationGUI.INSTANCE.deleteSlide(slidesTable.getSelectedRow());
+            PresentationGUI.INSTANCE.deleteSlide(slidesTable.getSelectedRows());
         } catch (IllegalArgumentException ex) {
             System.err.println(ex.getMessage());
         }
@@ -275,8 +296,7 @@ public class MainWindow extends javax.swing.JFrame {
     }//GEN-LAST:event_buttonMoveDownMouseReleased
 
     private void buttonEditMouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_buttonEditMouseReleased
-        Slide slide = PresentationGUI.INSTANCE.getSlides().get(slidesTable.getSelectedRow());
-        //slide.getDialog().show();
+        PresentationGUI.INSTANCE.updateSlide(slidesTable.getSelectedRow());
     }//GEN-LAST:event_buttonEditMouseReleased
 
     private void jMenuItem3MouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jMenuItem3MouseReleased
@@ -291,7 +311,7 @@ public class MainWindow extends javax.swing.JFrame {
             try {
                 zipFile = new ZipFile(fc.getSelectedFile());
                 PresentationGUI.INSTANCE.open(zipFile);
-                RGHelper.INSTANCE.parse(zipFile);
+                //RGHelper.INSTANCE.parse(zipFile);
             } catch (IOException ex) {
                 Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -313,8 +333,16 @@ public class MainWindow extends javax.swing.JFrame {
     }//GEN-LAST:event_FileMenuNewActionPerformed
 
     private void buttonAddActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonAddActionPerformed
-        PresentationGUI.INSTANCE.createSlide();
+
     }//GEN-LAST:event_buttonAddActionPerformed
+
+    private void buttonEditActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonEditActionPerformed
+
+    }//GEN-LAST:event_buttonEditActionPerformed
+
+    private void jMenu1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jMenu1MouseClicked
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jMenu1MouseClicked
 
     /**
      * @param args the command line arguments
@@ -346,6 +374,11 @@ public class MainWindow extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
+                try {
+                    UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+                } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ex) {
+                    Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
+                }
                 new MainWindow().setVisible(true);
             }
         });

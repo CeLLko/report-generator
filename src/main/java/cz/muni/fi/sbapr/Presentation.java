@@ -32,7 +32,7 @@ public enum Presentation {
     private boolean initialized = false;
 
     private final XMLSlideShow PPTX;
-    private List<Slide> slides = new ArrayList<>();
+    private List<Slide> slides = new ArrayList();
     private File file = null;
 
     private Presentation() {
@@ -50,7 +50,6 @@ public enum Presentation {
 
         if (RGHelper.INSTANCE.isInitialized()) {
             slides = RGHelper.INSTANCE.parseSlides();
-            slides.forEach(slide -> slide.parse());
         }
     }
 

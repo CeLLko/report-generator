@@ -14,7 +14,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.poi.xslf.usermodel.XSLFShape;
-import org.apache.poi.xslf.usermodel.XSLFSlide;
 import org.apache.poi.xslf.usermodel.XSLFTextShape;
 import org.w3c.dom.Element;
 
@@ -33,12 +32,11 @@ public class DateTimeDataSource extends DataSource<String> {
 
     public DateTimeDataSource(Element element) {
         super(element);
-        timeString = getAttribute("string");
+        timeString = getAttribute("timeString");
         //2007-12-03T10:15:30.00Z
         this.zoneId = ZoneId.of(getAttribute("timeZone"));
         this.dateTimeFormatter = DateTimeFormatter.ofPattern(getAttribute("format")).withZone(this.zoneId);
     }
-
 
     @Override
     public String getData() {
@@ -62,15 +60,14 @@ public class DateTimeDataSource extends DataSource<String> {
                 time = LocalTime.now(zoneId);
             }
         } else {
-            date = LocalDate.now(zoneId);
-            time = LocalTime.now(zoneId);
+            return timeString;
         }
-        timeStamp = Instant.parse(date.toString() + "T" + time.toString()+"Z").atZone(zoneId);
+        timeStamp = Instant.parse(date.toString() + "T" + time.format(DateTimeFormatter.ofPattern("hh:mm:ss")) + "Z").atZone(zoneId);
         return dateTimeFormatter.format(timeStamp);
     }
 
     @Override
-    public XSLFShape updateShape(XSLFSlide slide, XSLFShape shape) {
+    public XSLFShape updateShape(XSLFShape shape) {
         ((XSLFTextShape) shape).clearText();
         ((XSLFTextShape) shape).appendText(getData(), false);
         return shape;

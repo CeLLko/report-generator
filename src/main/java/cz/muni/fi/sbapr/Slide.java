@@ -6,17 +6,16 @@
 package cz.muni.fi.sbapr;
 
 import cz.muni.fi.sbapr.utils.RGHelper;
-import com.sun.org.apache.xerces.internal.dom.DeferredElementImpl;
-import cz.muni.fi.sbapr.DataSources.DataSource;
 import cz.muni.fi.sbapr.utils.IterableNodeList;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import org.apache.poi.xslf.usermodel.XSLFShape;
 import org.apache.poi.xslf.usermodel.XSLFSlide;
 import org.apache.poi.xslf.usermodel.XSLFSlideLayout;
-import org.apache.poi.xslf.usermodel.XSLFTextShape;
+import org.w3c.dom.Attr;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
@@ -30,55 +29,92 @@ import org.w3c.dom.Node;
 public class Slide implements Callable<XSLFSlide>, Cloneable {
 
     private XSLFSlide slide;
-    private List<SlideElement> elements = new ArrayList<>();
-    protected Element slideElement;
+    private Element element;
+    private Map<Integer, SlideElement> slideElements = new HashMap() {
 
-    /**
-     * Creates a new slide by parsing an XML {@link org.w3c.dom.Node node}
-     *
-     * @param slideNode the node to parse
-     */
+        @Override
+        public Object get(Object key) {
+            if (containsKey(((XSLFShape) key).getShapeId())) {
+                return super.get(((XSLFShape) key).getShapeId());
+            } else {
+                return create(key);
+            }
+        }
+
+        private Object create(Object shape) {
+            Element newElement = RGHelper.INSTANCE.getDoc().createElement("element");
+            element.appendChild(newElement);
+            Attr attr = RGHelper.INSTANCE.getDoc().createAttribute("placeholderID");
+            attr.setValue("" + ((XSLFShape) shape).getShapeId());
+            newElement.setAttributeNode(attr);
+            SlideElement newSlideElement = new SlideElement((XSLFShape) shape, newElement);
+            slideElements.put(((XSLFShape) shape).getShapeId(), newSlideElement);
+            return newSlideElement;
+        }
+
+        @Override
+        public Object remove(Object element) {
+            Object res = super.remove(element);
+            if (res != null) {
+                ((SlideElement) res).getElement().getParentNode().removeChild(((SlideElement) res).getElement());
+            }
+            return res;
+        }
+        
+        @Override
+        public void clear(){
+            keySet().forEach(key -> remove(key));
+        }
+    };
+
     public Slide() {
-        this.slideElement = RGHelper.INSTANCE.getDoc().createElement("slide");
+        this.element = RGHelper.INSTANCE.getDoc().createElement("slide");
+        IterableNodeList list = (RGHelper.INSTANCE.getNodeListByName("slides"));
+        (list.stream().findAny().get()).appendChild(element);
     }
 
-    public Slide(Element slideElement) {
-        this.slideElement = slideElement;
-    }
-
-    public void parse() {
-
-        XSLFSlideLayout layout = RGHelper.INSTANCE.getLayout(slideElement.getAttribute("layout"));
+    public Slide(Element element) {
+        this.element = element;
+        XSLFSlideLayout layout = RGHelper.INSTANCE.getLayout(element.getAttribute("layout"));
         slide = Presentation.INSTANCE.getPPTX().createSlide(layout);
-        new IterableNodeList(slideElement.getChildNodes())
+        new IterableNodeList(element.getChildNodes())
                 .stream()
                 .filter((node) -> (node.getNodeType() == Node.ELEMENT_NODE))
                 .map(node -> (Element) node)
-                .forEachOrdered((element) -> {
-                    List<Object> args = new ArrayList<>();
-                    //new IterableNodeList(((Element) node).getChildNodes())
-                    //    .stream()
-                    //    .filter(attribute -> attribute instanceof DeferredElementImpl)
-                    //    .forEach(attr -> args.add((Object) attr.getTextContent()));
-
-                    DataSource ds = RGHelper.INSTANCE.getNewDataSourceInstance(element.getAttribute("dataSource"), element);
-
-                    int shapeId = Integer.parseInt(element.getAttribute("placeholderID"));
-                    //slide.getShapes().stream().forEach(action -> System.out.println(action.getShapeName()+" " +action.getShapeId()));
-                    XSLFTextShape placeholder = (XSLFTextShape) slide.getShapes().stream().filter(shape -> shape.getShapeId() == shapeId).findAny().get();
-                    elements.add(new SlideElement(slide, placeholder, ds));
+                .forEachOrdered((slideElement) -> {
+                    int shapeId = Integer.parseInt(slideElement.getAttribute("placeholderID"));
+                    XSLFShape shape = slide.getShapes().stream().filter(s -> s.getShapeId() == shapeId).findAny().get();
+                    slideElements.put(shape.getShapeId(), new SlideElement(shape, slideElement));
                 });
     }
 
     @Override
     public XSLFSlide call() throws Exception {
-        ExecutorService pool = Executors.newFixedThreadPool(elements.size());
-        pool.invokeAll(elements);
+        ExecutorService pool = Executors.newFixedThreadPool(slideElements.size());
+        pool.invokeAll(slideElements.values());
         return slide;
+    }
+
+    public Element getElement() {
+        return element;
+    }
+
+    public SlideElement getSlideElement(XSLFShape shape) {
+        return slideElements.get(shape);
+    }
+    
+    public Map getSlideElements() {
+        return slideElements;
+    }
+
+    public String getDescription() {
+        return element.getAttribute("description");
     }
     
     @Override
-    public Slide clone() throws CloneNotSupportedException {
-        return (Slide) super.clone();
+    public Slide clone() throws CloneNotSupportedException{
+        Slide clone = (Slide) super.clone();
+        clone.element = (Element) element.cloneNode(true);
+        return clone;
     }
 }

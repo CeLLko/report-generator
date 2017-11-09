@@ -7,6 +7,8 @@ package cz.muni.fi.sbapr.utils;
 
 import cz.muni.fi.sbapr.DataSources.DataSource;
 import cz.muni.fi.sbapr.Slide;
+import cz.muni.fi.sbapr.gui.DataSourcePanels.DataSourcePanel;
+import cz.muni.fi.sbapr.gui.DataSourcePanels.DefaultDataSourcePanel;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -21,15 +23,24 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+import javax.swing.JPanel;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.io.FileUtils;
 import org.apache.poi.util.IOUtils;
 import org.apache.poi.xslf.usermodel.XMLSlideShow;
+import org.apache.poi.xslf.usermodel.XSLFPictureData;
 import org.apache.poi.xslf.usermodel.XSLFSlideLayout;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -49,7 +60,8 @@ public enum RGHelper {
     private XPath xPath;
     private Document doc;
 
-    private Map<String, Class> dataSources;
+    private Map<String, Class> dataSources = new HashMap<>();
+    private Map<String, Class> dataSourcePanels = new HashMap<>();
     private Map<String, XSLFSlideLayout> layouts;
     private XMLSlideShow template;
 
@@ -103,8 +115,10 @@ public enum RGHelper {
             doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
             Element rootElement = doc.createElement("report");
             doc.appendChild(rootElement);
+            Element slides = doc.createElement("slides");
+            rootElement.appendChild(slides);
 
-            XMLSlideShow template = new XMLSlideShow(new FileInputStream(pptxFile));
+            template = new XMLSlideShow(new FileInputStream(pptxFile));
             parseLayouts(template);
             initialized = true;
         } catch (ParserConfigurationException ex) {
@@ -124,21 +138,21 @@ public enum RGHelper {
     }
 
     private void parseDataSources() {
-        Map<String, Class> dataSources = new HashMap<>();
-        IterableNodeList DSList = RGHelper.INSTANCE.getNodeList("/report/dataSources/dataSource");
+        IterableNodeList DSList = RGHelper.INSTANCE.getNodeListByName("dataSource");
         DSList.stream().filter(node -> node.getNodeType() == Node.ELEMENT_NODE).forEach(node -> {
             Element element = (Element) node;
             String id = element.getAttribute("id");
             String fullClassName = element.getAttribute("type");
+            String fullPanelClassName = element.getAttribute("panel");
             try {
-                dataSources.put(id, Class.forName(fullClassName));
+                this.dataSources.put(id, Class.forName(fullClassName));
+                this.dataSourcePanels.put(id, Class.forName(fullPanelClassName));
 
             } catch (ClassNotFoundException ex) {
                 Logger.getLogger(RGHelper.class
                         .getName()).log(Level.SEVERE, null, ex);
             }
         });
-        this.dataSources = dataSources;
     }
 
     private void parseLayouts(XMLSlideShow template) {
@@ -155,23 +169,42 @@ public enum RGHelper {
         Set<String> keys = layouts.keySet();
         return keys.toArray(new String[keys.size()]);
     }
-    
-    public Map<String, XSLFSlideLayout> getLayouts(){
-        return layouts;
+
+    public String[] getDataSourceNames() {
+        Set<String> keys = dataSources.keySet();
+        return keys.toArray(new String[keys.size()]);
     }
-    
+
+    public void printXML() throws TransformerConfigurationException, TransformerException {
+        TransformerFactory transformerFactory = TransformerFactory.newInstance();
+        Transformer transformer = transformerFactory.newTransformer();
+        DOMSource source = new DOMSource(doc);
+
+        StreamResult consoleResult = new StreamResult(System.out);
+        transformer.transform(source, consoleResult);
+    }
+
     public Document getDoc() {
         return doc;
+    }
+
+    public Map<String, XSLFSlideLayout> getLayouts() {
+        return layouts;
     }
 
     public XSLFSlideLayout getLayout(String name) {
         return layouts.get(name);
     }
-    
+
     public XMLSlideShow getTemplate() {
         return template;
     }
 
+    public IterableNodeList getNodeListByName(String name) {
+        NodeList nodeList = null;
+        nodeList = (NodeList) doc.getElementsByTagName(name);
+        return new IterableNodeList(nodeList);
+    }
 
     public IterableNodeList getNodeList(String expression) {
         NodeList nodeList = null;
@@ -185,8 +218,7 @@ public enum RGHelper {
         return new IterableNodeList(nodeList);
     }
 
-    public DataSource
-            getNewDataSourceInstance(String className, Element element) {
+    public DataSource getNewDataSourceInstance(String className, Element element) {
         try {
             return (DataSource) (dataSources.get(className).getConstructor(Element.class
             ).newInstance(element));
@@ -196,6 +228,15 @@ public enum RGHelper {
                     .getName()).log(Level.SEVERE, null, ex);
         }
         return null;
+    }
+
+    public DataSourcePanel getNewDataSourcePanelInstance(String className, Element element) {
+        try {
+            return (DataSourcePanel) (dataSourcePanels.get(className).getConstructor().newInstance());
+        } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | SecurityException | IllegalArgumentException | InvocationTargetException ex) {
+            Logger.getLogger(RGHelper.class.getName()).log(Level.SEVERE, null, ex);
+            return new DefaultDataSourcePanel();
+        }
     }
 
     /**

@@ -79,8 +79,7 @@ public class SlideElementEditDialog extends javax.swing.JDialog {
             }
         });
 
-        frameDS.setBorder(null
-        );
+        frameDS.setBorder(javax.swing.BorderFactory.createEtchedBorder());
         BasicInternalFrameUI bi = (BasicInternalFrameUI)frameDS.getUI();
         bi.setNorthPane(null);
         frameDS.setFocusable(false);
@@ -96,7 +95,7 @@ public class SlideElementEditDialog extends javax.swing.JDialog {
         );
         frameDSLayout.setVerticalGroup(
             frameDSLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 23, Short.MAX_VALUE)
+            .addGap(0, 24, Short.MAX_VALUE)
         );
 
         comboBoxDataSource.setModel(new ComboBoxDataSourceModel(originalDataSourceName));
@@ -152,6 +151,8 @@ public class SlideElementEditDialog extends javax.swing.JDialog {
             hide();
         } else if (!changed){
             hide();
+        }else{
+            show();
         }
     }//GEN-LAST:event_buttonOKActionPerformed
 
@@ -174,7 +175,7 @@ public class SlideElementEditDialog extends javax.swing.JDialog {
 
     private void changeDataSourcePanel() {
         String selectedItem = (String) comboBoxDataSource.getSelectedItem();
-        JPanel newPanel = RGHelper.INSTANCE.getNewDataSourcePanelInstance(selectedItem, slideElement.getElement());
+        JPanel newPanel = RGHelper.INSTANCE.getNewDataSourcePanelInstance(selectedItem, this);
         frameDS.setContentPane(newPanel);
         changed = true;
         if ((selectedItem == null ? originalDataSourceName == null : selectedItem.equals(originalDataSourceName)) && !isNew) {
@@ -184,7 +185,7 @@ public class SlideElementEditDialog extends javax.swing.JDialog {
         resize();
     }
 
-    private void resize() {
+    public void resize() {
         setMinimumSize(new Dimension(340, frameDS.getContentPane().getMinimumSize().height + 130));
         setPreferredSize(getMinimumSize());
         pack();

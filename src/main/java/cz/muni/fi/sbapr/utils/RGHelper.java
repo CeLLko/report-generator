@@ -9,12 +9,15 @@ import cz.muni.fi.sbapr.DataSources.DataSource;
 import cz.muni.fi.sbapr.Slide;
 import cz.muni.fi.sbapr.gui.DataSourcePanels.DataSourcePanel;
 import cz.muni.fi.sbapr.gui.DataSourcePanels.DefaultDataSourcePanel;
+import java.awt.Dialog;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,8 +25,6 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
-import javax.swing.JPanel;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Transformer;
@@ -36,11 +37,13 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
-import org.apache.commons.codec.digest.DigestUtils;
+import net.lingala.zip4j.core.ZipFile;
+import net.lingala.zip4j.exception.ZipException;
+import net.lingala.zip4j.io.ZipInputStream;
+import net.lingala.zip4j.model.FileHeader;
 import org.apache.commons.io.FileUtils;
-import org.apache.poi.util.IOUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.poi.xslf.usermodel.XMLSlideShow;
-import org.apache.poi.xslf.usermodel.XSLFPictureData;
 import org.apache.poi.xslf.usermodel.XSLFSlideLayout;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -64,54 +67,41 @@ public enum RGHelper {
     private Map<String, Class> dataSourcePanels = new HashMap<>();
     private Map<String, XSLFSlideLayout> layouts;
     private XMLSlideShow template;
+    private File pptxEntry;
+    private File xmlEntry;
 
     public void parse(ZipFile zipFile) throws IOException {
-        ZipEntry xmlEntry = zipFile.getEntry("report-template.xml");
-        if (xmlEntry == null) {
-            System.err.print("report-template.xml not found, ");
-            Enumeration<? extends ZipEntry> entries = zipFile.entries();
-            while (entries.hasMoreElements()) {
-                xmlEntry = entries.nextElement();
-                if (xmlEntry.getName().endsWith(".xml")) {
-                    System.err.println("using " + xmlEntry.getName() + " instead.");
-                    break;
-                }
-            }
-            throw new IOException("no XML file found");
-        }
-
-        ZipEntry pptxEntry = zipFile.getEntry("infrastructure-report-template.pptx");
-        if (pptxEntry != null) {
-            String crunchifyValue = DigestUtils.md5Hex(IOUtils.toByteArray(zipFile.getInputStream(pptxEntry)));
-            System.err.println(crunchifyValue);
-        } else {
-            System.err.print("infrastructure-report-template.pptx not found, ");
-            Enumeration<? extends ZipEntry> entries = zipFile.entries();
-            while (entries.hasMoreElements()) {
-                pptxEntry = entries.nextElement();
-                if (pptxEntry.getName().endsWith(".pptx") || pptxEntry.getName().endsWith(".ppt")) {
-                    System.err.println("using " + pptxEntry.getName() + " instead.");
-                    break;
-                }
-            }
-            throw new IOException("no PPTX file found");
-        }
         try {
+            pptxEntry = File.createTempFile("pptx", "tmp");
+            xmlEntry = File.createTempFile("xml", "tmp");
+            List fileHeaders = zipFile.getFileHeaders();
+            for (int i = 0; i < fileHeaders.size(); i++) {
+                FileHeader fileHeader = (FileHeader) fileHeaders.get(i);
+                if (fileHeader.isEncrypted()) {
+                    fileHeader.setPassword("hodor".toCharArray());
+                }
+                if (fileHeader.getFileName().toLowerCase().endsWith(".xml")) {
+                    FileUtils.copyInputStreamToFile(zipFile.getInputStream(fileHeader), xmlEntry);
+                    doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(xmlEntry);
+                } else if (fileHeader.getFileName().toLowerCase().endsWith(".pptx") || fileHeader.getFileName().toLowerCase().endsWith(".ppt")) {
+                    FileUtils.copyInputStreamToFile(zipFile.getInputStream(fileHeader), pptxEntry);
+                    template = new XMLSlideShow(new FileInputStream(pptxEntry));
+                }
+            }
             xPath = XPathFactory.newInstance().newXPath();
-            doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(zipFile.getInputStream(xmlEntry));
             doc.getDocumentElement().normalize();
-
-            template = new XMLSlideShow(zipFile.getInputStream(pptxEntry));
             parseLayouts(template);
             parseDataSources();
             initialized = true;
-        } catch (SAXException | ParserConfigurationException ex) {
+        } catch (ZipException | ParserConfigurationException | SAXException ex) {
             Logger.getLogger(RGHelper.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
     public void parse(File pptxFile) throws IOException {
         try {
+            pptxEntry = File.createTempFile("pptx", "tmp");
+            xmlEntry = File.createTempFile("xml", "tmp");
             doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
             Element rootElement = doc.createElement("report");
             doc.appendChild(rootElement);
@@ -175,13 +165,23 @@ public enum RGHelper {
         return keys.toArray(new String[keys.size()]);
     }
 
-    public void printXML() throws TransformerConfigurationException, TransformerException {
-        TransformerFactory transformerFactory = TransformerFactory.newInstance();
-        Transformer transformer = transformerFactory.newTransformer();
-        DOMSource source = new DOMSource(doc);
-
-        StreamResult consoleResult = new StreamResult(System.out);
-        transformer.transform(source, consoleResult);
+    public File getXMLFile() {
+        try {
+            TransformerFactory transformerFactory = TransformerFactory.newInstance();
+            Transformer transformer = transformerFactory.newTransformer();
+            DOMSource source = new DOMSource(doc);
+            StreamResult result = new StreamResult(this.xmlEntry);
+            transformer.transform(source, result);
+        } catch (TransformerConfigurationException ex) {
+            Logger.getLogger(RGHelper.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (TransformerException ex) {
+            Logger.getLogger(RGHelper.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return xmlEntry;
+    }
+    
+    public File getPPTXFile() {
+        return pptxEntry;
     }
 
     public Document getDoc() {
@@ -230,12 +230,12 @@ public enum RGHelper {
         return null;
     }
 
-    public DataSourcePanel getNewDataSourcePanelInstance(String className, Element element) {
+    public DataSourcePanel getNewDataSourcePanelInstance(String className, Dialog cont) {
         try {
-            return (DataSourcePanel) (dataSourcePanels.get(className).getConstructor().newInstance());
+            return (DataSourcePanel) (dataSourcePanels.get(className).getConstructor(Dialog.class).newInstance(cont));
         } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | SecurityException | IllegalArgumentException | InvocationTargetException ex) {
             Logger.getLogger(RGHelper.class.getName()).log(Level.SEVERE, null, ex);
-            return new DefaultDataSourcePanel();
+            return new DefaultDataSourcePanel(cont);
         }
     }
 
@@ -247,4 +247,15 @@ public enum RGHelper {
     public boolean isInitialized() {
         return initialized;
     }
+
+    private static final void copyInputStream(InputStream in, OutputStream out) throws IOException {
+        byte[] buffer = new byte[1024];
+        int len;
+        while ((len = in.read(buffer)) >= 0) {
+            out.write(buffer, 0, len);
+        }
+        in.close();
+        out.close();
+    }
+
 }

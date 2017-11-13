@@ -40,7 +40,8 @@ public class SlideElement implements Callable<XSLFShape>{
     @Override
     public XSLFShape call() throws Exception {
         this.dataSource = RGHelper.INSTANCE.getNewDataSourceInstance(element.getAttribute("dataSource"), element);
-        return dataSource.updateShape(shape);
+        XSLFShape res = dataSource.updateShape(shape);
+        return res;
     }
 
     public Element getElement() {

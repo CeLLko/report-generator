@@ -32,7 +32,7 @@ public class PostgreSQLDataSource extends DataSource<String> {
         this.pass = "123456";*/
         this.statement = "SELECT currency FROM \"public\".\"MOCK_DATA\" WHERE id=1";
         
-        this.db = "jdbc:postgresql://"+getAttribute("server")+":"+getAttribute("port")+"/"+getAttribute("db");
+        this.db = "jdbc:postgresql://"+getAttribute("host")+":"+getAttribute("port")+"/"+getAttribute("db");
         this.user = getAttribute("user");
         this.pass = getAttribute("pass");
         //this.statement = getAttribute("statement");

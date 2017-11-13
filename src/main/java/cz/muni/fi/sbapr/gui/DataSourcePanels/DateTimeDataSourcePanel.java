@@ -8,6 +8,7 @@ package cz.muni.fi.sbapr.gui.DataSourcePanels;
 import static cz.muni.fi.sbapr.gui.DataSourcePanels.DataSourcePanel.ERROR_BORDER;
 import cz.muni.fi.sbapr.utils.IterableNodeList;
 import cz.muni.fi.sbapr.utils.RGHelper;
+import java.awt.Dialog;
 import java.time.DateTimeException;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -41,8 +42,8 @@ public class DateTimeDataSourcePanel extends DataSourcePanel {
     /**
      * Creates new form IMGDataSourcePanel
      */
-    public DateTimeDataSourcePanel() {
-        super();
+    public DateTimeDataSourcePanel(Dialog parent) {
+        super(parent);
         initComponents();
         //updateString();
     }
@@ -413,11 +414,6 @@ public class DateTimeDataSourcePanel extends DataSourcePanel {
 
     @Override
     public void loadElement(Element element) {
-        try {
-            RGHelper.INSTANCE.printXML();
-        } catch (TransformerException ex) {
-            Logger.getLogger(DateTimeDataSourcePanel.class.getName()).log(Level.SEVERE, null, ex);
-        }
         fieldTimeZone.setText(getAttribute(element, "timeZone") == null ? "Europe/Prague" : getAttribute(element, "timeZone"));
         checkTimeZone();
         fieldFormat.setText(getAttribute(element, "format") == null ? "yyyy MM dd" : getAttribute(element, "format"));

@@ -1,18 +1,20 @@
 package cz.muni.fi.sbapr.gui;
 
-import cz.muni.fi.sbapr.Slide;
 import cz.muni.fi.sbapr.utils.RGHelper;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.zip.ZipFile;
+import java.util.zip.ZipInputStream;
 import javax.swing.JFileChooser;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import net.lingala.zip4j.core.ZipFile;
+import net.lingala.zip4j.exception.ZipException;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -25,14 +27,12 @@ import javax.swing.filechooser.FileNameExtensionFilter;
  */
 public class MainWindow extends javax.swing.JFrame {
 
-    private int i = 0;
-
     /**
      * Creates new form MainWindow
      */
     public MainWindow() {
         initComponents();
-        PresentationGUI.INSTANCE.setSlideTable((SlidesTableModel)slidesTable.getModel());
+        PresentationGUI.INSTANCE.setSlideTable((SlidesTableModel) slidesTable.getModel());
         PresentationGUI.INSTANCE.setMainWindow(this);
     }
 
@@ -60,6 +60,7 @@ public class MainWindow extends javax.swing.JFrame {
         FileMenuNew = new javax.swing.JMenuItem();
         FileMenuOpen = new javax.swing.JMenuItem();
         FileMenuSave = new javax.swing.JMenuItem();
+        FileMenuSaveAs = new javax.swing.JMenuItem();
         jSeparator1 = new javax.swing.JPopupMenu.Separator();
         jMenuItem3 = new javax.swing.JMenuItem();
         jMenu2 = new javax.swing.JMenu();
@@ -74,14 +75,7 @@ public class MainWindow extends javax.swing.JFrame {
         jScrollPane1.setPreferredSize(new java.awt.Dimension(600, 400));
 
         slidesTable.setModel(new SlidesTableModel());
-        slidesTable.setRowHeight(30);
-        slidesTable.addMouseListener(new MouseAdapter(){
-            public void mouseClicked(MouseEvent e){
-                if (e.getClickCount() == 2){
-                    PresentationGUI.INSTANCE.updateSlide(slidesTable.getSelectedRow());
-                }
-            }
-        });
+        slidesTable.setRowHeight(40);
         jScrollPane1.setViewportView(slidesTable);
         if (slidesTable.getColumnModel().getColumnCount() > 0) {
             slidesTable.getColumnModel().getColumn(0).setMinWidth(40);
@@ -102,6 +96,7 @@ public class MainWindow extends javax.swing.JFrame {
 
         buttonAdd.setBackground(new java.awt.Color(255, 255, 255));
         buttonAdd.setIcon(new javax.swing.ImageIcon(getClass().getResource("/gui/new.png"))); // NOI18N
+        buttonAdd.setBorderPainted(false);
         buttonAdd.setFocusable(false);
         buttonAdd.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         buttonAdd.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
@@ -119,6 +114,7 @@ public class MainWindow extends javax.swing.JFrame {
 
         buttonDelete.setBackground(new java.awt.Color(255, 255, 255));
         buttonDelete.setIcon(new javax.swing.ImageIcon(getClass().getResource("/gui/delete.png"))); // NOI18N
+        buttonDelete.setBorderPainted(false);
         buttonDelete.setFocusable(false);
         buttonDelete.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         buttonDelete.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
@@ -131,6 +127,7 @@ public class MainWindow extends javax.swing.JFrame {
 
         buttonDuplicate.setBackground(new java.awt.Color(255, 255, 255));
         buttonDuplicate.setIcon(new javax.swing.ImageIcon(getClass().getResource("/gui/duplicate.png"))); // NOI18N
+        buttonDuplicate.setBorderPainted(false);
         buttonDuplicate.setFocusable(false);
         buttonDuplicate.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         buttonDuplicate.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
@@ -143,6 +140,7 @@ public class MainWindow extends javax.swing.JFrame {
 
         buttonMoveUp.setBackground(new java.awt.Color(255, 255, 255));
         buttonMoveUp.setIcon(new javax.swing.ImageIcon(getClass().getResource("/gui/up.png"))); // NOI18N
+        buttonMoveUp.setBorderPainted(false);
         buttonMoveUp.setFocusable(false);
         buttonMoveUp.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         buttonMoveUp.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
@@ -155,6 +153,7 @@ public class MainWindow extends javax.swing.JFrame {
 
         buttonMoveDown.setBackground(new java.awt.Color(255, 255, 255));
         buttonMoveDown.setIcon(new javax.swing.ImageIcon(getClass().getResource("/gui/down.png"))); // NOI18N
+        buttonMoveDown.setBorderPainted(false);
         buttonMoveDown.setFocusable(false);
         buttonMoveDown.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         buttonMoveDown.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
@@ -167,17 +166,13 @@ public class MainWindow extends javax.swing.JFrame {
 
         buttonEdit.setBackground(new java.awt.Color(255, 255, 255));
         buttonEdit.setIcon(new javax.swing.ImageIcon(getClass().getResource("/gui/edit.png"))); // NOI18N
+        buttonEdit.setBorderPainted(false);
         buttonEdit.setFocusable(false);
         buttonEdit.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         buttonEdit.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
         buttonEdit.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseReleased(java.awt.event.MouseEvent evt) {
                 buttonEditMouseReleased(evt);
-            }
-        });
-        buttonEdit.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonEditActionPerformed(evt);
             }
         });
         jToolBar1.add(buttonEdit);
@@ -198,14 +193,9 @@ public class MainWindow extends javax.swing.JFrame {
         getContentPane().add(jPanel1, java.awt.BorderLayout.PAGE_END);
 
         jMenu1.setText("File");
-        jMenu1.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                jMenu1MouseClicked(evt);
-            }
-        });
 
         FileMenuNew.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_N, java.awt.event.InputEvent.CTRL_MASK));
-        FileMenuNew.setText("New XML");
+        FileMenuNew.setText("New");
         FileMenuNew.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 FileMenuNewActionPerformed(evt);
@@ -214,7 +204,7 @@ public class MainWindow extends javax.swing.JFrame {
         jMenu1.add(FileMenuNew);
 
         FileMenuOpen.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_O, java.awt.event.InputEvent.CTRL_MASK));
-        FileMenuOpen.setText("Open XML");
+        FileMenuOpen.setText("Open");
         FileMenuOpen.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 FileMenuOpenActionPerformed(evt);
@@ -223,7 +213,7 @@ public class MainWindow extends javax.swing.JFrame {
         jMenu1.add(FileMenuOpen);
 
         FileMenuSave.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, java.awt.event.InputEvent.CTRL_MASK));
-        FileMenuSave.setText("Save XML");
+        FileMenuSave.setText("Save");
         FileMenuSave.setToolTipText("");
         FileMenuSave.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -231,6 +221,16 @@ public class MainWindow extends javax.swing.JFrame {
             }
         });
         jMenu1.add(FileMenuSave);
+
+        FileMenuSaveAs.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, java.awt.event.InputEvent.SHIFT_MASK | java.awt.event.InputEvent.CTRL_MASK));
+        FileMenuSaveAs.setText("Save as");
+        FileMenuSaveAs.setToolTipText("");
+        FileMenuSaveAs.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                FileMenuSaveAsActionPerformed(evt);
+            }
+        });
+        jMenu1.add(FileMenuSaveAs);
         jMenu1.add(jSeparator1);
 
         jMenuItem3.setText("Exit");
@@ -304,17 +304,17 @@ public class MainWindow extends javax.swing.JFrame {
     }//GEN-LAST:event_jMenuItem3MouseReleased
 
     private void FileMenuOpenActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_FileMenuOpenActionPerformed
-        ZipFile zipFile = null;
-        JFileChooser fc = new JFileChooser();
-        fc.setFileFilter(new FileNameExtensionFilter("Report Generator files", "rg"));
-        if (fc.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
-            try {
-                zipFile = new ZipFile(fc.getSelectedFile());
-                PresentationGUI.INSTANCE.open(zipFile);
-                //RGHelper.INSTANCE.parse(zipFile);
-            } catch (IOException ex) {
-                Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
+        try {
+            JFileChooser fc = new JFileChooser();
+            fc.setFileFilter(new FileNameExtensionFilter("Report Generator files", "rg"));
+            if (fc.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+                ZipFile zipFile = new ZipFile(fc.getSelectedFile());
+                if (zipFile.isValidZipFile()) {
+                    PresentationGUI.INSTANCE.open(zipFile);
+                }
             }
+        } catch (ZipException ex) {
+            Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
         }
     }//GEN-LAST:event_FileMenuOpenActionPerformed
 
@@ -344,6 +344,10 @@ public class MainWindow extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_jMenu1MouseClicked
 
+    private void FileMenuSaveAsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_FileMenuSaveAsActionPerformed
+        PresentationGUI.INSTANCE.saveAs();
+    }//GEN-LAST:event_FileMenuSaveAsActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -358,16 +362,24 @@ public class MainWindow extends javax.swing.JFrame {
                 if ("Nimbus".equals(info.getName())) {
                     javax.swing.UIManager.setLookAndFeel(info.getClassName());
                     break;
+
                 }
             }
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(MainWindow.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(MainWindow.class
+                    .getName()).log(java.util.logging.Level.SEVERE, null, ex);
+
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(MainWindow.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(MainWindow.class
+                    .getName()).log(java.util.logging.Level.SEVERE, null, ex);
+
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(MainWindow.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(MainWindow.class
+                    .getName()).log(java.util.logging.Level.SEVERE, null, ex);
+
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(MainWindow.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(MainWindow.class
+                    .getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
 
@@ -376,8 +388,10 @@ public class MainWindow extends javax.swing.JFrame {
             public void run() {
                 try {
                     UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+
                 } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ex) {
-                    Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(MainWindow.class
+                            .getName()).log(Level.SEVERE, null, ex);
                 }
                 new MainWindow().setVisible(true);
             }
@@ -388,6 +402,7 @@ public class MainWindow extends javax.swing.JFrame {
     private javax.swing.JMenuItem FileMenuNew;
     private javax.swing.JMenuItem FileMenuOpen;
     private javax.swing.JMenuItem FileMenuSave;
+    private javax.swing.JMenuItem FileMenuSaveAs;
     private javax.swing.JButton buttonAdd;
     private javax.swing.JButton buttonDelete;
     private javax.swing.JButton buttonDuplicate;

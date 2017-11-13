@@ -261,11 +261,6 @@ public class SlideEditDialog extends javax.swing.JDialog {
             changed = true;
             changedSlide.getSlideElements().clear();
         }
-        try {
-            RGHelper.INSTANCE.printXML();
-        } catch (TransformerException ex) {
-            Logger.getLogger(SlideEditDialog.class.getName()).log(Level.SEVERE, null, ex);
-        }
     }//GEN-LAST:event_comboBoxTemplateActionPerformed
 
     private void layoutPanelComponentResized(java.awt.event.ComponentEvent evt) {//GEN-FIRST:event_layoutPanelComponentResized
@@ -285,4 +280,5 @@ public class SlideEditDialog extends javax.swing.JDialog {
     private javax.swing.JLabel labelTemplate;
     private javax.swing.JPanel layoutPanel;
     // End of variables declaration//GEN-END:variables
+
 }

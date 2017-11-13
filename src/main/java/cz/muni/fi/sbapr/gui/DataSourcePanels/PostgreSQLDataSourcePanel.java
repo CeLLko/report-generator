@@ -7,6 +7,7 @@ package cz.muni.fi.sbapr.gui.DataSourcePanels;
 
 import cz.muni.fi.sbapr.utils.IterableNodeList;
 import cz.muni.fi.sbapr.utils.RGHelper;
+import java.awt.Dialog;
 import javax.swing.JOptionPane;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
@@ -26,8 +27,8 @@ public class PostgreSQLDataSourcePanel extends DataSourcePanel {
     /**
      * Creates new form IMGDataSourcePanel
      */
-    public PostgreSQLDataSourcePanel() {
-        super();
+    public PostgreSQLDataSourcePanel(Dialog parent) {
+        super(parent);
         SQLAreaSyntax = new RSyntaxTextArea(5, 60);
         SQLAreaSyntax.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_SQL);
         SQLAreaSyntax.setCodeFoldingEnabled(true);

@@ -7,6 +7,7 @@ package cz.muni.fi.sbapr.gui.DataSourcePanels;
 
 import cz.muni.fi.sbapr.utils.IterableNodeList;
 import cz.muni.fi.sbapr.utils.RGHelper;
+import java.awt.Dialog;
 import java.net.MalformedURLException;
 import java.net.URL;
 import javax.swing.JOptionPane;
@@ -22,8 +23,8 @@ public class IMGDataSourcePanel extends DataSourcePanel {
     /**
      * Creates new form IMGDataSourcePanel
      */
-    public IMGDataSourcePanel() {
-        super();
+    public IMGDataSourcePanel(Dialog parent) {
+        super(parent);
         initComponents();
     }
 
@@ -37,21 +38,14 @@ public class IMGDataSourcePanel extends DataSourcePanel {
     private void initComponents() {
 
         fieldURL = new javax.swing.JTextField();
-        buttonResize = new javax.swing.JRadioButton();
         fieldWidth = new javax.swing.JTextField();
         fieldHeight = new javax.swing.JTextField();
+        checkBoxResize = new javax.swing.JCheckBox();
 
         fieldURL.setText("URL");
         fieldURL.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 fieldURLActionPerformed(evt);
-            }
-        });
-
-        buttonResize.setText("Resize");
-        buttonResize.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonResizeActionPerformed(evt);
             }
         });
 
@@ -63,21 +57,29 @@ public class IMGDataSourcePanel extends DataSourcePanel {
         fieldHeight.setText("HEIGHT");
         fieldHeight.setEnabled(false);
 
+        checkBoxResize.setText("Resize");
+        checkBoxResize.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                checkBoxResizeActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addComponent(fieldURL)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(buttonResize)
-                        .addGap(18, 18, 18)
-                        .addComponent(fieldWidth, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(0, 33, Short.MAX_VALUE)
+                        .addComponent(checkBoxResize)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(fieldWidth, javax.swing.GroupLayout.PREFERRED_SIZE, 88, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(fieldHeight, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                        .addComponent(fieldHeight, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -88,7 +90,7 @@ public class IMGDataSourcePanel extends DataSourcePanel {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(fieldHeight, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(fieldWidth, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(buttonResize))
+                    .addComponent(checkBoxResize))
                 .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents
@@ -97,14 +99,14 @@ public class IMGDataSourcePanel extends DataSourcePanel {
         // TODO add your handling code here:
     }//GEN-LAST:event_fieldURLActionPerformed
 
-    private void buttonResizeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonResizeActionPerformed
-        fieldHeight.setEnabled(buttonResize.isEnabled());
-        fieldWidth.setEnabled(buttonResize.isEnabled());
-    }//GEN-LAST:event_buttonResizeActionPerformed
+    private void checkBoxResizeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkBoxResizeActionPerformed
+        fieldHeight.setEnabled(checkBoxResize.isSelected());
+        fieldWidth.setEnabled(checkBoxResize.isSelected());
+    }//GEN-LAST:event_checkBoxResizeActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JRadioButton buttonResize;
+    private javax.swing.JCheckBox checkBoxResize;
     private javax.swing.JTextField fieldHeight;
     private javax.swing.JTextField fieldURL;
     private javax.swing.JTextField fieldWidth;
@@ -124,7 +126,7 @@ public class IMGDataSourcePanel extends DataSourcePanel {
             JOptionPane.showMessageDialog(this.getParent(), ex.getMessage(), "URL error", JOptionPane.ERROR_MESSAGE);
             return false;
         }
-        if (buttonResize.isSelected()) {
+        if (checkBoxResize.isSelected()) {
             try {
                 int width = Integer.parseInt(fieldWidth.getText());
                 int height = Integer.parseInt(fieldHeight.getText());
@@ -151,7 +153,7 @@ public class IMGDataSourcePanel extends DataSourcePanel {
     public void loadElement(Element element) {
         fieldURL.setText(getAttribute(element, "url") == null ? "URL" : getAttribute(element, "url"));
         if (getAttribute(element, "width") != null && getAttribute(element, "height") != null) {
-            buttonResize.setSelected(true);
+            checkBoxResize.setSelected(true);
             fieldWidth.setEnabled(true);
             fieldHeight.setEnabled(true);
             fieldWidth.setText(getAttribute(element, "width") == null ? "WIDTH" : getAttribute(element, "width"));

@@ -6,8 +6,8 @@
 package cz.muni.fi.sbapr.gui;
 
 import cz.muni.fi.sbapr.Slide;
-import cz.muni.fi.sbapr.utils.IterableNodeList;
 import cz.muni.fi.sbapr.utils.RGHelper;
+import cz.muni.fi.sbapr.utils.SlideArrayList;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -19,11 +19,16 @@ import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import java.util.zip.ZipFile;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.SwingWorker;
+import net.lingala.zip4j.core.ZipFile;
+import net.lingala.zip4j.exception.ZipException;
+import net.lingala.zip4j.model.FileHeader;
+import net.lingala.zip4j.model.ZipParameters;
+import net.lingala.zip4j.util.Zip4jConstants;
 import org.apache.poi.xslf.usermodel.XMLSlideShow;
+import org.w3c.dom.Element;
 
 /**
  *
@@ -36,47 +41,12 @@ public enum PresentationGUI {
         this.slideTable = slideTable;
     }
     private XMLSlideShow template;
-    private List<Slide> slides = new ArrayList() {
-        
-        @Override
-        public Object set(int index, Object element){
-            Slide slide = (Slide) get(index);
-            slide.getElement().getParentNode().replaceChild(((Slide) element).getElement(), slide.getElement());
-            return super.set(index, element);
-        }
-        
-        @Override
-        public boolean add(Object element) {
-            boolean res = super.add(element);
-            int row = super.indexOf(element);
-            if (res) {
-                PresentationGUI.INSTANCE.slideTable.fireTableRowsInserted(row, row);
-                RGHelper.INSTANCE.getNodeListByName("slides").get(0).appendChild(((Slide) element).getElement());
-            }
-            return res;
-        }
+    private SlideArrayList slides = new SlideArrayList();
 
-        @Override
-        public boolean remove(Object element) {
-            int row = super.indexOf(element);
-            boolean res = super.remove(element);
-            if (res) {
-                PresentationGUI.INSTANCE.slideTable.fireTableRowsDeleted(row, row);
-                RGHelper.INSTANCE.getNodeListByName("slides").get(0).removeChild(((Slide) element).getElement());
-            }
-            return res;
-        }
-
-        @Override
-        public void clear() {
-            super.clear();
-            PresentationGUI.INSTANCE.slideTable.fireTableDataChanged();
-            new IterableNodeList(RGHelper.INSTANCE.getNodeListByName("slides").get(0).getChildNodes()).forEach(node -> node.getParentNode().removeChild(node));
-        }
-    };
     private SlidesTableModel slideTable;
     private JFrame window;
     private boolean changed = false;
+    private ZipFile currentFile = null;
 
     public void createNew(File pptxFile) {
         try {
@@ -89,6 +59,7 @@ public enum PresentationGUI {
     }
 
     public void open(ZipFile zipFile) {
+        currentFile = zipFile;
         try {
             RGHelper.INSTANCE.parse(zipFile);
         } catch (IOException ex) {
@@ -98,7 +69,41 @@ public enum PresentationGUI {
         slideTable.fireTableDataChanged();
     }
 
-    public List<Slide> getSlides() {
+    public void save() {
+        if (currentFile == null) {
+            saveAs();
+            return;
+        } else {
+            try {
+                FileHeader xmlFile = (FileHeader) currentFile.getFileHeaders().stream().filter(header -> ((FileHeader) header).getFileName().toLowerCase().endsWith(".xml")).findFirst().get();
+                currentFile.removeFile("report-template.xml");
+                //currentFile.removeFile(xmlFile);
+                currentFile.addFile(RGHelper.INSTANCE.getXMLFile(), new ZipParameters());
+            } catch (ZipException ex) {
+                saveAs();
+                return;
+            }
+        }
+    }
+
+    public void saveAs() {
+        try {
+            ZipFile zipFile = new ZipFile("test.rg");
+            ZipParameters params = new ZipParameters();
+            params.setCompressionMethod(Zip4jConstants.COMP_DEFLATE);
+            params.setCompressionLevel(Zip4jConstants.DEFLATE_LEVEL_FASTEST);
+            params.setEncryptFiles(true);
+            params.setEncryptionMethod(Zip4jConstants.ENC_METHOD_STANDARD);
+            params.setPassword("test");
+            zipFile.createZipFile(new ArrayList<>(Arrays.asList(RGHelper.INSTANCE.getXMLFile(), RGHelper.INSTANCE.getPPTXFile())), params);
+        } catch (ZipException ex) {
+            Logger.getLogger(PresentationGUI.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+
+    }
+
+    public SlideArrayList getSlides() {
         return slides;
     }
 
@@ -135,6 +140,7 @@ public enum PresentationGUI {
         protected void done() {
             try {
                 get();
+                slideTable.fireTableRowsInserted(slides.size() - 1, slides.size() - 1);
             } catch (InterruptedException | ExecutionException ex) {
                 Logger.getLogger(SlidesTableModel.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -174,6 +180,7 @@ public enum PresentationGUI {
 
         @Override
         protected void done() {
+            slideTable.fireTableRowsDeleted(Collections.min(rows), Collections.max(rows));
         }
 
     }
@@ -201,9 +208,11 @@ public enum PresentationGUI {
             return slide;
         }
 
+        @Override
         protected void done() {
             try {
                 get();
+                slideTable.fireTableRowsInserted(slides.size() - 1, slides.size() - 1);
             } catch (InterruptedException | ExecutionException ex) {
                 Logger.getLogger(SlidesTableModel.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -232,8 +241,11 @@ public enum PresentationGUI {
         protected Boolean doInBackground() throws Exception {
             Slide slide = PresentationGUI.INSTANCE.getSlides().get(fromRow);
             try {
-                Collections.swap(PresentationGUI.INSTANCE.getSlides(), fromRow, toRow);
-                
+                Element from = getSlides().get(Math.max(fromRow, toRow)).getElement();
+                Element to = getSlides().get(Math.min(fromRow, toRow)).getElement();
+                to.getParentNode().insertBefore(from, to);
+                getSlides().swap(fromRow, toRow);
+                //Collections.swap(PresentationGUI.INSTANCE.getSlides(), fromRow, toRow);
             } catch (ArrayIndexOutOfBoundsException e) {
                 result = false;
             }

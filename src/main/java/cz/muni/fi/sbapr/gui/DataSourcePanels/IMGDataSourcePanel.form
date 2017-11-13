@@ -16,19 +16,20 @@
   <Layout>
     <DimensionLayout dim="0">
       <Group type="103" groupAlignment="0" attributes="0">
-          <Group type="102" attributes="0">
+          <Group type="102" alignment="1" attributes="0">
               <EmptySpace max="-2" attributes="0"/>
-              <Group type="103" groupAlignment="0" attributes="0">
+              <Group type="103" groupAlignment="1" attributes="0">
                   <Component id="fieldURL" max="32767" attributes="0"/>
-                  <Group type="102" alignment="1" attributes="0">
-                      <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
-                      <Component id="buttonResize" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace type="separate" max="-2" attributes="0"/>
-                      <Component id="fieldWidth" min="-2" pref="100" max="-2" attributes="0"/>
+                  <Group type="102" attributes="0">
+                      <EmptySpace min="0" pref="33" max="32767" attributes="0"/>
+                      <Component id="checkBoxResize" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace type="unrelated" max="-2" attributes="0"/>
+                      <Component id="fieldWidth" min="-2" pref="88" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
-                      <Component id="fieldHeight" min="-2" pref="100" max="-2" attributes="0"/>
+                      <Component id="fieldHeight" min="-2" pref="90" max="-2" attributes="0"/>
                   </Group>
               </Group>
+              <EmptySpace max="-2" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
@@ -41,7 +42,7 @@
               <Group type="103" groupAlignment="3" attributes="0">
                   <Component id="fieldHeight" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="fieldWidth" alignment="3" min="-2" max="-2" attributes="0"/>
-                  <Component id="buttonResize" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="checkBoxResize" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
           </Group>
@@ -57,14 +58,6 @@
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="fieldURLActionPerformed"/>
       </Events>
     </Component>
-    <Component class="javax.swing.JRadioButton" name="buttonResize">
-      <Properties>
-        <Property name="text" type="java.lang.String" value="Resize"/>
-      </Properties>
-      <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="buttonResizeActionPerformed"/>
-      </Events>
-    </Component>
     <Component class="javax.swing.JTextField" name="fieldWidth">
       <Properties>
         <Property name="horizontalAlignment" type="int" value="0"/>
@@ -78,6 +71,14 @@
         <Property name="text" type="java.lang.String" value="HEIGHT"/>
         <Property name="enabled" type="boolean" value="false"/>
       </Properties>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="checkBoxResize">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Resize"/>
+      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="checkBoxResizeActionPerformed"/>
+      </Events>
     </Component>
   </SubComponents>
 </Form>

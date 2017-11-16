@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><report>
+    <property askForValue="true" name="report.date" type="java.time.LocalDate"/>
+    <property name="report.zoneId" type="java.time.ZoneId">Asia/Jakarta</property> 
+    <property name="report.country" type="net.homecredit.common.Country">id</property>
+	
+    <dataSources>
+        <dataSource id="IMGDataSource" panel="cz.muni.fi.sbapr.gui.DataSourcePanels.IMGDataSourcePanel" type="cz.muni.fi.sbapr.DataSources.IMGDataSource">
+        </dataSource>
+        <dataSource id="NagiosGraphDataSource" panel="cz.muni.fi.sbapr.gui.DataSourcePanels.DefaultDataSourcePanel" type="cz.muni.fi.sbapr.DataSources.NagiosGraphDataSource">
+        </dataSource>
+        <dataSource id="TextDataSource" panel="cz.muni.fi.sbapr.gui.DataSourcePanels.DefaultDataSourcePanel" type="cz.muni.fi.sbapr.DataSources.TextDataSource">
+        </dataSource>
+        <dataSource id="DateTimeDataSource" panel="cz.muni.fi.sbapr.gui.DataSourcePanels.DateTimeDataSourcePanel" type="cz.muni.fi.sbapr.DataSources.DateTimeDataSource">
+        </dataSource>
+        <dataSource id="PostgreSQLDataSource" panel="cz.muni.fi.sbapr.gui.DataSourcePanels.PostgreSQLDataSourcePanel" type="cz.muni.fi.sbapr.DataSources.PostgreSQLDataSource">
+        </dataSource>
+    </dataSources>
+    
+    <slides>
+        <slide description="Description #1" layout="SingleGraph">
+            <element dataSource="DateTimeDataSource" placeholderID="11">
+                <timeString>$today+8d@10h31m50s</timeString>
+                <timeZone>Europe/Prague</timeZone>
+                <format>yyyy MM dd</format>
+            </element>
+            <element dataSource="PostgreSQLDataSource" placeholderID="6">
+                <host>obiwan.gdovin.eu</host>
+                <port>5432</port>
+                <db>test1</db>
+                <user>postgres</user>
+                <pass>123456</pass>
+                <statement>SELECT currency FROM "public"."mock_data" WHERE id=1</statement>
+            </element>
+            <element dataSource="NagiosGraphDataSource" placeholderID="10">
+                <url>http://yoda.gdovin.eu/nagios/cgi-bin/showgraph.cgi</url>
+                <host>localhost</host>
+                <service>HTTP</service>
+                <width>1440</width>
+                <height>900</height>
+            </element>
+        </slide>
+        
+        
+		
+        <slide description="Description #3" layout="MultipleGraphs">
+            <!-- mozna radeji neco obecnejsiho, nez graph -->
+            <element dataSource="IMGDataSource" placeholderID="18">
+                <url>http://adam.gdovin.eu/football/3.png</url>
+                <width>1440</width>
+                <height>900</height>
+            </element>
+            <element dataSource="IMGDataSource" placeholderID="19">
+                <url>http://adam.gdovin.eu/football/3.png</url>
+                <width>1440</width>
+                <height>900</height>
+            </element>
+            <element dataSource="IMGDataSource" placeholderID="20">
+                <url>http://adam.gdovin.eu/football/3.png</url>
+                <width>1440</width>
+                <height>900</height>
+            </element>
+            <element dataSource="IMGDataSource" placeholderID="21">
+                <url>http://adam.gdovin.eu/football/3.png</url>
+                <width>1440</width>
+                <height>900</height>
+            </element>
+        </slide>
+    </slides>
+</report>

@@ -72,8 +72,8 @@ public enum RGHelper {
 
     public void parse(ZipFile zipFile) throws IOException {
         try {
-            pptxEntry = File.createTempFile("pptx", "tmp");
-            xmlEntry = File.createTempFile("xml", "tmp");
+            pptxEntry = new File("template.pptx");
+            xmlEntry = new File("report.xml");
             List fileHeaders = zipFile.getFileHeaders();
             for (int i = 0; i < fileHeaders.size(); i++) {
                 FileHeader fileHeader = (FileHeader) fileHeaders.get(i);

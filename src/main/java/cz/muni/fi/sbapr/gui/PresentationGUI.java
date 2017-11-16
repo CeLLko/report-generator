@@ -10,7 +10,10 @@ import cz.muni.fi.sbapr.utils.RGHelper;
 import cz.muni.fi.sbapr.utils.SlideArrayList;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -24,6 +27,7 @@ import javax.swing.JFrame;
 import javax.swing.SwingWorker;
 import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
+import net.lingala.zip4j.io.ZipOutputStream;
 import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.util.Zip4jConstants;
@@ -72,16 +76,14 @@ public enum PresentationGUI {
     public void save() {
         if (currentFile == null) {
             saveAs();
-            return;
         } else {
             try {
                 FileHeader xmlFile = (FileHeader) currentFile.getFileHeaders().stream().filter(header -> ((FileHeader) header).getFileName().toLowerCase().endsWith(".xml")).findFirst().get();
-                currentFile.removeFile("report-template.xml");
+                currentFile.removeFile(xmlFile);
                 //currentFile.removeFile(xmlFile);
                 currentFile.addFile(RGHelper.INSTANCE.getXMLFile(), new ZipParameters());
             } catch (ZipException ex) {
                 saveAs();
-                return;
             }
         }
     }
@@ -99,8 +101,6 @@ public enum PresentationGUI {
         } catch (ZipException ex) {
             Logger.getLogger(PresentationGUI.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
-
     }
 
     public SlideArrayList getSlides() {

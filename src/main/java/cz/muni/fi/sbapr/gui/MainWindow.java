@@ -319,7 +319,7 @@ public class MainWindow extends javax.swing.JFrame {
     }//GEN-LAST:event_FileMenuOpenActionPerformed
 
     private void FileMenuSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_FileMenuSaveActionPerformed
-        // TODO add your handling code here:
+        PresentationGUI.INSTANCE.save();
     }//GEN-LAST:event_FileMenuSaveActionPerformed
 
     private void FileMenuNewActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_FileMenuNewActionPerformed

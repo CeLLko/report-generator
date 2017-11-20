@@ -1,15 +1,12 @@
 package cz.muni.fi.sbapr.gui;
 
-import cz.muni.fi.sbapr.utils.RGHelper;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.zip.ZipInputStream;
 import javax.swing.JFileChooser;
+import javax.swing.JFrame;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -32,6 +29,13 @@ public class MainWindow extends javax.swing.JFrame {
      */
     public MainWindow() {
         initComponents();
+        setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent windowEvent){
+                PresentationGUI.INSTANCE.exit();
+            }
+        });
         PresentationGUI.INSTANCE.setSlideTable((SlidesTableModel) slidesTable.getModel());
         PresentationGUI.INSTANCE.setMainWindow(this);
     }
@@ -300,7 +304,7 @@ public class MainWindow extends javax.swing.JFrame {
     }//GEN-LAST:event_buttonEditMouseReleased
 
     private void jMenuItem3MouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jMenuItem3MouseReleased
-        System.exit(0);
+        PresentationGUI.INSTANCE.exit();
     }//GEN-LAST:event_jMenuItem3MouseReleased
 
     private void FileMenuOpenActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_FileMenuOpenActionPerformed

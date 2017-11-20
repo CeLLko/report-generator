@@ -12,7 +12,6 @@ import cz.muni.fi.sbapr.gui.DataSourcePanels.DefaultDataSourcePanel;
 import java.awt.Dialog;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -24,7 +23,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.zip.ZipEntry;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Transformer;
@@ -39,10 +37,10 @@ import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
-import net.lingala.zip4j.io.ZipInputStream;
 import net.lingala.zip4j.model.FileHeader;
+import net.lingala.zip4j.model.ZipParameters;
+import net.lingala.zip4j.util.Zip4jConstants;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.poi.xslf.usermodel.XMLSlideShow;
 import org.apache.poi.xslf.usermodel.XSLFSlideLayout;
 import org.w3c.dom.Document;
@@ -69,17 +67,24 @@ public enum RGHelper {
     private XMLSlideShow template;
     private File pptxEntry;
     private File xmlEntry;
+    private final ZipParameters zipParams = new ZipParameters() {
+        {
+            setCompressionMethod(Zip4jConstants.COMP_DEFLATE);
+            setCompressionLevel(Zip4jConstants.DEFLATE_LEVEL_FASTEST);
+            setEncryptFiles(true);
+            setEncryptionMethod(Zip4jConstants.AES_STRENGTH_256);
+        }
+    };
 
     public void parse(ZipFile zipFile) throws IOException {
         try {
+            //zipFile.setPassword("hodor".toCharArray());
+            //zipParams.setPassword("hodor".toCharArray());
             pptxEntry = new File("template.pptx");
             xmlEntry = new File("report.xml");
             List fileHeaders = zipFile.getFileHeaders();
             for (int i = 0; i < fileHeaders.size(); i++) {
                 FileHeader fileHeader = (FileHeader) fileHeaders.get(i);
-                if (fileHeader.isEncrypted()) {
-                    fileHeader.setPassword("hodor".toCharArray());
-                }
                 if (fileHeader.getFileName().toLowerCase().endsWith(".xml")) {
                     FileUtils.copyInputStreamToFile(zipFile.getInputStream(fileHeader), xmlEntry);
                     doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(xmlEntry);
@@ -93,25 +98,32 @@ public enum RGHelper {
             parseLayouts(template);
             parseDataSources();
             initialized = true;
-        } catch (ZipException | ParserConfigurationException | SAXException ex) {
+        } catch (NullPointerException | ZipException | ParserConfigurationException | SAXException ex) {
             Logger.getLogger(RGHelper.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
     public void parse(File pptxFile) throws IOException {
         try {
-            pptxEntry = File.createTempFile("pptx", "tmp");
-            xmlEntry = File.createTempFile("xml", "tmp");
-            doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
-            Element rootElement = doc.createElement("report");
-            doc.appendChild(rootElement);
-            Element slides = doc.createElement("slides");
-            rootElement.appendChild(slides);
+            pptxEntry = new File("template.pptx");
+            
+            xmlEntry = new File(getClass().getClassLoader().getResource("report.xml").getFile());
+            doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(xmlEntry);
+            xPath = XPathFactory.newInstance().newXPath();
+            doc.getDocumentElement().normalize();
+            parseDataSources();
+            //doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
+            //Element rootElement = doc.createElement("report");
+            //doc.appendChild(rootElement);
+            //Element slides = doc.createElement("slides");
+            //rootElement.appendChild(slides);
 
             template = new XMLSlideShow(new FileInputStream(pptxFile));
             parseLayouts(template);
             initialized = true;
         } catch (ParserConfigurationException ex) {
+            Logger.getLogger(RGHelper.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (SAXException ex) {
             Logger.getLogger(RGHelper.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
@@ -179,9 +191,13 @@ public enum RGHelper {
         }
         return xmlEntry;
     }
-    
+
     public File getPPTXFile() {
         return pptxEntry;
+    }
+
+    public ZipParameters getZipParams() {
+        return zipParams;
     }
 
     public Document getDoc() {

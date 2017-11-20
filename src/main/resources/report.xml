@@ -11,4 +11,7 @@
         <dataSource id="PostgreSQLDataSource" panel="cz.muni.fi.sbapr.gui.DataSourcePanels.PostgreSQLDataSourcePanel" type="cz.muni.fi.sbapr.DataSources.PostgreSQLDataSource">
         </dataSource>
     </dataSources>
+    <slides>
+        
+    </slides>
 </report>

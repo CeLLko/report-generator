@@ -5,18 +5,25 @@
  */
 package cz.muni.fi.sbapr;
 
+import cz.muni.fi.sbapr.gui.PresentationGUI;
 import cz.muni.fi.sbapr.utils.RGHelper;
 import cz.muni.fi.sbapr.utils.WindowsRegistry;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.zip.ZipInputStream;
+import javax.swing.BorderFactory;
+import javax.swing.JDialog;
 import javax.swing.JFileChooser;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.xml.xpath.*;
 import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
+import net.lingala.zip4j.exception.ZipExceptionConstants;
+import net.lingala.zip4j.model.FileHeader;
 
 /**
  *
@@ -41,11 +48,42 @@ public class NewMain {
             } else {
                 zipFile = new ZipFile(args[0]);
             }
-            if (zipFile.isEncrypted()) {
-                zipFile.setPassword("hodor");
+            if ( zipFile.isValidZipFile()) {
+                if (zipFile.isEncrypted()) {
+                    JPanel panel = new JPanel();
+                    JLabel label = new JLabel("Enter a password:");
+                    JPasswordField pass = new JPasswordField(50);
+                    panel.add(label);
+                    panel.add(pass);
+                    String[] options = new String[]{"OK", "Cancel"};
+                    JOptionPane passPane = new JOptionPane(panel, JOptionPane.NO_OPTION, JOptionPane.PLAIN_MESSAGE,
+                            null, options, options[0]);
+                    JDialog dialog = passPane.createDialog(null, "");
+                    boolean correctPass = false;
+                    do {
+                        dialog.show();
+                        if (options[0] == passPane.getValue()) {
+                            char[] password = pass.getPassword();
+                            zipFile.setPassword(password);
+                            try {
+                                zipFile.getInputStream((FileHeader) zipFile.getFileHeaders().get(0));
+                                correctPass = true;
+                            } catch (ZipException ex) {
+                                if (ex.getCode() == ZipExceptionConstants.WRONG_PASSWORD) {
+                                    pass.setBorder(BorderFactory.createLineBorder(new java.awt.Color(255, 0, 0), 3));
+                                    correctPass = false;
+                                }
+                            }
+                            RGHelper.INSTANCE.getZipParams().setPassword(password);
+                        } else {
+                            return;
+                        }
+                    } while (!correctPass);
+                }
+                RGHelper.INSTANCE.parse(zipFile);
             }
-        } catch (ZipException ex) {
-            Logger.getLogger(NewMain.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException | ZipException ex) {
+            Logger.getLogger(PresentationGUI.class.getName()).log(Level.SEVERE, null, ex);
         }
         RGHelper.INSTANCE.parse(zipFile);
         Presentation.INSTANCE.init("name.pptx");

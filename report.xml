@@ -1,14 +1,88 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?><report>	
+<?xml version = "1.0"?>
+
+<report>
+    <property name="report.date" askForValue="true" type="java.time.LocalDate"/>
+    <property name="report.zoneId" type="java.time.ZoneId">Asia/Jakarta</property> 
+    <property name="report.country" type="net.homecredit.common.Country">id</property>
+	
     <dataSources>
-        <dataSource id="IMGDataSource" panel="cz.muni.fi.sbapr.gui.DataSourcePanels.IMGDataSourcePanel" type="cz.muni.fi.sbapr.DataSources.IMGDataSource">
+        <dataSource id="IMGDataSource" type="cz.muni.fi.sbapr.DataSources.IMGDataSource" panel="cz.muni.fi.sbapr.gui.DataSourcePanels.IMGDataSourcePanel">
         </dataSource>
-        <dataSource id="NagiosGraphDataSource" panel="cz.muni.fi.sbapr.gui.DataSourcePanels.DefaultDataSourcePanel" type="cz.muni.fi.sbapr.DataSources.NagiosGraphDataSource">
+        <dataSource id="NagiosGraphDataSource" type="cz.muni.fi.sbapr.DataSources.NagiosGraphDataSource" panel="cz.muni.fi.sbapr.gui.DataSourcePanels.DefaultDataSourcePanel">
         </dataSource>
-        <dataSource id="TextDataSource" panel="cz.muni.fi.sbapr.gui.DataSourcePanels.DefaultDataSourcePanel" type="cz.muni.fi.sbapr.DataSources.TextDataSource">
+        <dataSource id="TextDataSource" type="cz.muni.fi.sbapr.DataSources.TextDataSource" panel="cz.muni.fi.sbapr.gui.DataSourcePanels.DefaultDataSourcePanel">
         </dataSource>
-        <dataSource id="DateTimeDataSource" panel="cz.muni.fi.sbapr.gui.DataSourcePanels.DateTimeDataSourcePanel" type="cz.muni.fi.sbapr.DataSources.DateTimeDataSource">
+        <dataSource id="DateTimeDataSource" type="cz.muni.fi.sbapr.DataSources.DateTimeDataSource" panel="cz.muni.fi.sbapr.gui.DataSourcePanels.DateTimeDataSourcePanel">
         </dataSource>
-        <dataSource id="PostgreSQLDataSource" panel="cz.muni.fi.sbapr.gui.DataSourcePanels.PostgreSQLDataSourcePanel" type="cz.muni.fi.sbapr.DataSources.PostgreSQLDataSource">
+        <dataSource id="PostgreSQLDataSource" type="cz.muni.fi.sbapr.DataSources.PostgreSQLDataSource" panel="cz.muni.fi.sbapr.gui.DataSourcePanels.PostgreSQLDataSourcePanel">
         </dataSource>
     </dataSources>
+    
+    <slides>
+        <slide layout="SingleGraph" description="Description #1">
+            <element dataSource="DateTimeDataSource" placeholderID="11">
+                <timeString>$today+8d@10h31m50s</timeString>
+                <timeZone>Europe/Prague</timeZone>
+                <format>yyyy MM dd</format>
+            </element>
+            <element dataSource="PostgreSQLDataSource" placeholderID="6">
+                <host>obiwan.gdovin.eu</host>
+                <port>5432</port>
+                <db>test1</db>
+                <user>postgres</user>
+                <pass>123456</pass>
+                <statement>SELECT currency FROM "public"."mock_data" WHERE id=1</statement>
+            </element>
+            <element dataSource="NagiosGraphDataSource" placeholderID="10">
+                <url>http://yoda.gdovin.eu/nagios/cgi-bin/showgraph.cgi</url>
+                <host>localhost</host>
+                <service>HTTP</service>
+                <width>1440</width>
+                <height>900</height>
+            </element>
+        </slide>
+        
+        <slide layout="SingleGraph" description="Description #2">
+            <element dataSource="DateTimeDataSource" placeholderID="11">
+                <timeString>$today+8d@10h31m50s</timeString>
+                <timeZone>Europe/Prague</timeZone>
+                <format>yyyy MM dd</format>
+            </element>
+            <element dataSource="DateTimeDataSource" placeholderID="6">
+                <timeString>$today+8d@10h31m50s</timeString>
+                <timeZone>Europe/Prague</timeZone>
+                <format>yyyy MM dd</format>
+            </element>
+            <element dataSource="IMGDataSource" placeholderID="10">
+                <url>http://adam.gdovin.eu/football/3.png</url>
+                <width>1440</width>
+                <height>900</height>
+            </element>
+        </slide>
+		
+        <slide layout="MultipleGraphs" description="Description #3">
+            <!-- mozna radeji neco obecnejsiho, nez graph -->
+            <element dataSource="IMGDataSource" placeholderID="18">
+                <url>http://adam.gdovin.eu/football/3.png</url>
+                <width>1440</width>
+                <height>900</height>
+            </element>
+            <element dataSource="IMGDataSource" placeholderID="19">
+                <url>http://adam.gdovin.eu/football/3.png</url>
+                <width>1440</width>
+                <height>900</height>
+            </element>
+            <element dataSource="IMGDataSource" placeholderID="20">
+                <url>http://adam.gdovin.eu/football/3.png</url>
+                <width>1440</width>
+                <height>900</height>
+            </element>
+            <element dataSource="IMGDataSource" placeholderID="21">
+                <url>http://adam.gdovin.eu/football/3.png</url>
+                <width>1440</width>
+                <height>900</height>
+            </element>
+        </slide>
+    </slides>
 </report>
+

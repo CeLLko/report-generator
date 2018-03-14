@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
+import javax.swing.border.TitledBorder;
 import org.apache.poi.xslf.usermodel.XSLFTextShape;
 
 /**
@@ -45,6 +46,7 @@ public class EtchASketch extends JPanel {
     public void addPlaceholderButton(XSLFTextShape shape) {
         LayoutButton button = new LayoutButton(shape);
         shapes.put(shape.getShapeId(), button);
+        button.setBorderTitle(((SlideEditDialog) parent).getSlide().getSlideElement(shape).getDescription());
         button.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseReleased(java.awt.event.MouseEvent evt) {
                 layoutButtonMouseReleased(evt, button);
@@ -86,10 +88,12 @@ public class EtchASketch extends JPanel {
     private class LayoutButton extends JPanel {
 
         private final XSLFTextShape shape;
+        private final TitledBorder border;
 
         public LayoutButton(XSLFTextShape shape) {
             this.shape = shape;
-            super.setBorder(javax.swing.BorderFactory.createEtchedBorder());
+            border = javax.swing.BorderFactory.createTitledBorder("");
+            super.setBorder(border);
             super.setBackground(new java.awt.Color(250, 250, 250));
         }
 
@@ -99,6 +103,10 @@ public class EtchASketch extends JPanel {
             double width = shape.getAnchor().getWidth() * ((EtchASketch) getParent()).getScaleWidthFactor();
             double height = shape.getAnchor().getHeight() * ((EtchASketch) getParent()).getScaleHeightFactor();
             super.setBounds((int) x, (int) y, (int) width, (int) height);
+        }
+        
+        public void setBorderTitle(String title){
+            this.border.setTitle(title);
         }
     }
 

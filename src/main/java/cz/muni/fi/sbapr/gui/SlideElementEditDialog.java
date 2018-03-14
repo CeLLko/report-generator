@@ -37,9 +37,10 @@ public class SlideElementEditDialog extends javax.swing.JDialog {
             dataSourceAttr.setValue("");
             slideElement.getElement().setAttributeNode(dataSourceAttr);
             initComponents();
-        } else {
+        } else{
             originalDataSourceName = slideElement.getElement().getAttribute("dataSource");
             initComponents();
+            jTextField1.setText(slideElement.getDescription());
             changeDataSourcePanel();
         }
     }
@@ -57,6 +58,7 @@ public class SlideElementEditDialog extends javax.swing.JDialog {
         buttonCancel = new javax.swing.JButton();
         frameDS = new javax.swing.JInternalFrame();
         comboBoxDataSource = new javax.swing.JComboBox<>();
+        jTextField1 = new javax.swing.JTextField();
 
         setMinimumSize(new java.awt.Dimension(320, 150));
         addWindowListener(new java.awt.event.WindowAdapter() {
@@ -95,7 +97,7 @@ public class SlideElementEditDialog extends javax.swing.JDialog {
         );
         frameDSLayout.setVerticalGroup(
             frameDSLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 24, Short.MAX_VALUE)
+            .addGap(0, 33, Short.MAX_VALUE)
         );
 
         comboBoxDataSource.setModel(new ComboBoxDataSourceModel(originalDataSourceName));
@@ -105,20 +107,28 @@ public class SlideElementEditDialog extends javax.swing.JDialog {
             }
         });
 
+        jTextField1.setText("Description");
+        jTextField1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jTextField1ActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(comboBoxDataSource, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(jTextField1)
+                    .addComponent(comboBoxDataSource, javax.swing.GroupLayout.Alignment.LEADING, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(layout.createSequentialGroup()
                         .addGap(0, 160, Short.MAX_VALUE)
                         .addComponent(buttonOK, javax.swing.GroupLayout.PREFERRED_SIZE, 67, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(buttonCancel))
-                    .addComponent(frameDS, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(frameDS, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
 
@@ -128,9 +138,11 @@ public class SlideElementEditDialog extends javax.swing.JDialog {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
+                .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(comboBoxDataSource, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(frameDS, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(frameDS, javax.swing.GroupLayout.DEFAULT_SIZE, 62, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(buttonCancel)
@@ -146,12 +158,13 @@ public class SlideElementEditDialog extends javax.swing.JDialog {
     private void buttonOKActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonOKActionPerformed
         slideElement.getElement().setAttribute("dataSource", (String) ((ComboBoxDataSourceModel) comboBoxDataSource.getModel()).getSelectedItem());
         Element newElement = (Element) slideElement.getElement().cloneNode(true);
+        slideElement.setDescription(jTextField1.getText());
         if (((DataSourcePanel) frameDS.getContentPane()).updateElement(newElement)) {
             slideElement.setElement(newElement);
             hide();
-        } else if (!changed){
+        } else if (!changed) {
             hide();
-        }else{
+        } else {
             show();
         }
     }//GEN-LAST:event_buttonOKActionPerformed
@@ -172,6 +185,10 @@ public class SlideElementEditDialog extends javax.swing.JDialog {
     private void comboBoxDataSourceActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboBoxDataSourceActionPerformed
         changeDataSourcePanel();
     }//GEN-LAST:event_comboBoxDataSourceActionPerformed
+
+    private void jTextField1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField1ActionPerformed
+        changed = true;
+    }//GEN-LAST:event_jTextField1ActionPerformed
 
     private void changeDataSourcePanel() {
         String selectedItem = (String) comboBoxDataSource.getSelectedItem();
@@ -197,6 +214,7 @@ public class SlideElementEditDialog extends javax.swing.JDialog {
     private javax.swing.JButton buttonOK;
     private javax.swing.JComboBox<String> comboBoxDataSource;
     private javax.swing.JInternalFrame frameDS;
+    private javax.swing.JTextField jTextField1;
     // End of variables declaration//GEN-END:variables
 
 }

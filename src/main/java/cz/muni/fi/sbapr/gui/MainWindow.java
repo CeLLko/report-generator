@@ -1,5 +1,9 @@
 package cz.muni.fi.sbapr.gui;
 
+import cz.muni.fi.sbapr.utils.RGHelper;
+import java.awt.Point;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
@@ -7,6 +11,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JTable;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -32,7 +37,7 @@ public class MainWindow extends javax.swing.JFrame {
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         addWindowListener(new WindowAdapter() {
             @Override
-            public void windowClosing(WindowEvent windowEvent){
+            public void windowClosing(WindowEvent windowEvent) {
                 PresentationGUI.INSTANCE.exit();
             }
         });
@@ -51,6 +56,16 @@ public class MainWindow extends javax.swing.JFrame {
 
         jScrollPane1 = new javax.swing.JScrollPane();
         slidesTable = new javax.swing.JTable();
+        slidesTable.addMouseListener(new MouseAdapter() {
+            public void mousePressed(MouseEvent mouseEvent) {
+                JTable table =(JTable) mouseEvent.getSource();
+                Point point = mouseEvent.getPoint();
+                int row = table.rowAtPoint(point);
+                if (mouseEvent.getClickCount() == 2) {
+                    PresentationGUI.INSTANCE.updateSlide(slidesTable.getSelectedRow());
+                }
+            }
+        });
         jPanel1 = new javax.swing.JPanel();
         jToolBar1 = new javax.swing.JToolBar();
         buttonAdd = new javax.swing.JButton();
@@ -75,18 +90,11 @@ public class MainWindow extends javax.swing.JFrame {
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setMinimumSize(new java.awt.Dimension(230, 200));
 
-        jScrollPane1.setBorder(null);
         jScrollPane1.setPreferredSize(new java.awt.Dimension(600, 400));
 
         slidesTable.setModel(new SlidesTableModel());
         slidesTable.setRowHeight(40);
         jScrollPane1.setViewportView(slidesTable);
-        if (slidesTable.getColumnModel().getColumnCount() > 0) {
-            slidesTable.getColumnModel().getColumn(0).setMinWidth(40);
-            slidesTable.getColumnModel().getColumn(0).setPreferredWidth(40);
-            slidesTable.getColumnModel().getColumn(0).setMaxWidth(40);
-            slidesTable.getColumnModel().getColumn(1).setResizable(false);
-        }
 
         getContentPane().add(jScrollPane1, java.awt.BorderLayout.CENTER);
 
@@ -264,7 +272,11 @@ public class MainWindow extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void buttonAddMouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_buttonAddMouseReleased
-        PresentationGUI.INSTANCE.createSlide();
+        if (RGHelper.INSTANCE.isInitialized()) {
+            PresentationGUI.INSTANCE.createSlide();
+        } else {
+            OpenFileMenu();
+        }
     }//GEN-LAST:event_buttonAddMouseReleased
 
     private void buttonDeleteMouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_buttonDeleteMouseReleased
@@ -300,7 +312,10 @@ public class MainWindow extends javax.swing.JFrame {
     }//GEN-LAST:event_buttonMoveDownMouseReleased
 
     private void buttonEditMouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_buttonEditMouseReleased
-        PresentationGUI.INSTANCE.updateSlide(slidesTable.getSelectedRow());
+        if (RGHelper.INSTANCE.isInitialized()) {
+            PresentationGUI.INSTANCE.updateSlide(slidesTable.getSelectedRow());
+        } else {
+        }
     }//GEN-LAST:event_buttonEditMouseReleased
 
     private void jMenuItem3MouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jMenuItem3MouseReleased
@@ -308,6 +323,10 @@ public class MainWindow extends javax.swing.JFrame {
     }//GEN-LAST:event_jMenuItem3MouseReleased
 
     private void FileMenuOpenActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_FileMenuOpenActionPerformed
+        OpenFileMenu();
+    }//GEN-LAST:event_FileMenuOpenActionPerformed
+
+    private void OpenFileMenu() {
         try {
             JFileChooser fc = new JFileChooser();
             fc.setFileFilter(new FileNameExtensionFilter("Report Generator files", "rg"));
@@ -320,8 +339,7 @@ public class MainWindow extends javax.swing.JFrame {
         } catch (ZipException ex) {
             Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
         }
-    }//GEN-LAST:event_FileMenuOpenActionPerformed
-
+    }
     private void FileMenuSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_FileMenuSaveActionPerformed
         PresentationGUI.INSTANCE.save();
     }//GEN-LAST:event_FileMenuSaveActionPerformed

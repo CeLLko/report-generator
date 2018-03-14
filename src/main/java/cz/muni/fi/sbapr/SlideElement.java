@@ -23,6 +23,15 @@ public class SlideElement implements Callable<XSLFShape>{
     private DataSource dataSource;
     private Element element;
     private XSLFShape shape;
+    private String description = "Description";
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
 
     public SlideElement(XSLFShape shape, Element element) {
         this.shape = shape;
@@ -53,5 +62,7 @@ public class SlideElement implements Callable<XSLFShape>{
         new IterableNodeList(newElement.getChildNodes()).forEach(node -> element.appendChild(node));
         
     }
+    
+    
 
 }

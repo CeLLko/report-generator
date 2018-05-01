@@ -137,9 +137,10 @@
             <Property name="model" type="javax.swing.table.TableModel" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
               <Connection code="new SlidesTableModel()" type="code"/>
             </Property>
-            <Property name="rowHeight" type="int" value="40"/>
-            <Property name="tableHeader" type="javax.swing.table.JTableHeader" editor="org.netbeans.modules.form.editors2.JTableHeaderEditor">
-              <TableHeader reorderingAllowed="true" resizingAllowed="true"/>
+            <Property name="rowHeight" type="int" value="30"/>
+            <Property name="showVerticalLines" type="boolean" value="false"/>
+            <Property name="tableHeader" type="javax.swing.table.JTableHeader" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+              <Connection code="null&#xd;&#xa;" type="code"/>
             </Property>
           </Properties>
           <AuxValues>

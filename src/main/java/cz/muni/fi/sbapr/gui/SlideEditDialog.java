@@ -62,6 +62,11 @@ public class SlideEditDialog extends javax.swing.JDialog {
         ((EtchASketch) layoutPanel).repaint();
 
     }
+    
+    public void reloadLayoutButtons(){
+        ((EtchASketch) layoutPanel).getLayoutButtons().forEach(button ->  button.setBorderTitle(this.getSlide().getSlideElement(button.getShape()).getDescription()));
+        ((EtchASketch) layoutPanel).repaint();
+    }
 
     public Slide getSlide() {
         return slide;
@@ -260,7 +265,7 @@ public class SlideEditDialog extends javax.swing.JDialog {
         } else {
             changed = true;
             changedSlide.getSlideElements().clear();
-        }
+        } 
     }//GEN-LAST:event_comboBoxTemplateActionPerformed
 
     private void layoutPanelComponentResized(java.awt.event.ComponentEvent evt) {//GEN-FIRST:event_layoutPanelComponentResized

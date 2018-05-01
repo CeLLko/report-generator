@@ -20,6 +20,7 @@ import org.w3c.dom.Element;
  */
 public class SlideElementEditDialog extends javax.swing.JDialog {
 
+    private SlideEditDialog parent = null;
     private SlideElement slideElement = null;
     private String originalDataSourceName = null;
     private boolean isNew;
@@ -30,6 +31,7 @@ public class SlideElementEditDialog extends javax.swing.JDialog {
      */
     public SlideElementEditDialog(java.awt.Dialog parent, SlideElement slideElement, boolean isNew) {
         super(parent, true);
+        this.parent = (SlideEditDialog) parent;
         this.isNew = isNew;
         this.slideElement = slideElement;
         if (isNew) {
@@ -40,9 +42,9 @@ public class SlideElementEditDialog extends javax.swing.JDialog {
         } else{
             originalDataSourceName = slideElement.getElement().getAttribute("dataSource");
             initComponents();
-            jTextField1.setText(slideElement.getDescription());
             changeDataSourcePanel();
         }
+        jTextField1.setText(slideElement.getDescription());
     }
 
     /**
@@ -60,7 +62,7 @@ public class SlideElementEditDialog extends javax.swing.JDialog {
         comboBoxDataSource = new javax.swing.JComboBox<>();
         jTextField1 = new javax.swing.JTextField();
 
-        setMinimumSize(new java.awt.Dimension(320, 150));
+        setMinimumSize(new java.awt.Dimension(320, 180));
         addWindowListener(new java.awt.event.WindowAdapter() {
             public void windowClosing(java.awt.event.WindowEvent evt) {
                 closeDialog(evt);
@@ -97,7 +99,7 @@ public class SlideElementEditDialog extends javax.swing.JDialog {
         );
         frameDSLayout.setVerticalGroup(
             frameDSLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 33, Short.MAX_VALUE)
+            .addGap(0, 93, Short.MAX_VALUE)
         );
 
         comboBoxDataSource.setModel(new ComboBoxDataSourceModel(originalDataSourceName));
@@ -142,7 +144,7 @@ public class SlideElementEditDialog extends javax.swing.JDialog {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(comboBoxDataSource, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(frameDS, javax.swing.GroupLayout.DEFAULT_SIZE, 62, Short.MAX_VALUE)
+                .addComponent(frameDS, javax.swing.GroupLayout.DEFAULT_SIZE, 122, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(buttonCancel)
@@ -159,10 +161,11 @@ public class SlideElementEditDialog extends javax.swing.JDialog {
         slideElement.getElement().setAttribute("dataSource", (String) ((ComboBoxDataSourceModel) comboBoxDataSource.getModel()).getSelectedItem());
         Element newElement = (Element) slideElement.getElement().cloneNode(true);
         slideElement.setDescription(jTextField1.getText());
-        if (((DataSourcePanel) frameDS.getContentPane()).updateElement(newElement)) {
-            slideElement.setElement(newElement);
+            this.parent.reloadLayoutButtons();
+        if (!changed) {
             hide();
-        } else if (!changed) {
+        }else if (frameDS.getContentPane() instanceof DataSourcePanel && ((DataSourcePanel) frameDS.getContentPane()).updateElement(newElement)) {
+            slideElement.setElement(newElement);
             hide();
         } else {
             show();
@@ -203,7 +206,7 @@ public class SlideElementEditDialog extends javax.swing.JDialog {
     }
 
     public void resize() {
-        setMinimumSize(new Dimension(340, frameDS.getContentPane().getMinimumSize().height + 130));
+        setMinimumSize(new Dimension(340, frameDS.getContentPane().getMinimumSize().height + 160));
         setPreferredSize(getMinimumSize());
         pack();
     }

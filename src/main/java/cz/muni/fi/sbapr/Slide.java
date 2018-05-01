@@ -8,7 +8,10 @@ package cz.muni.fi.sbapr;
 import cz.muni.fi.sbapr.utils.RGHelper;
 import cz.muni.fi.sbapr.utils.IterableNodeList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -62,8 +65,13 @@ public class Slide implements Callable<XSLFSlide>, Cloneable {
         }
         
         @Override
-        public void clear(){
-            keySet().forEach(key -> remove(key));
+        public void clear(){   
+            Iterator it = entrySet().iterator();
+            while (it.hasNext())
+            {
+               Entry item = (Entry) it.next();
+               it.remove();
+            }
         }
     };
 
@@ -83,8 +91,10 @@ public class Slide implements Callable<XSLFSlide>, Cloneable {
                 .map(node -> (Element) node)
                 .forEachOrdered((slideElement) -> {
                     int shapeId = Integer.parseInt(slideElement.getAttribute("placeholderID"));
-                    XSLFShape shape = slide.getShapes().stream().filter(s -> s.getShapeId() == shapeId).findAny().get();
-                    slideElements.put(shape.getShapeId(), new SlideElement(shape, slideElement));
+                    Optional<XSLFShape> shape = slide.getShapes().stream().filter(s -> s.getShapeId() == shapeId).findAny();
+                    if(shape.isPresent()){                        
+                        slideElements.put(shape.get().getShapeId(), new SlideElement(shape.get(), slideElement));
+                    }
                 });
     }
 

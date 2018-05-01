@@ -236,8 +236,8 @@ public enum RGHelper {
 
     public DataSource getNewDataSourceInstance(String className, Element element) {
         try {
-            return (DataSource) (dataSources.get(className).getConstructor(Element.class
-            ).newInstance(element));
+            return (DataSource) (dataSources.get(className).getConstructor(Element.class)
+                    .newInstance(element));
 
         } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | SecurityException | IllegalArgumentException | InvocationTargetException ex) {
             Logger.getLogger(RGHelper.class

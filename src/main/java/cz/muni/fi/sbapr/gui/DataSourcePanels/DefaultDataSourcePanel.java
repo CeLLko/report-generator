@@ -134,7 +134,7 @@ public class DefaultDataSourcePanel extends DataSourcePanel {
     }
 
     public void resize() {
-        setMinimumSize(new Dimension(280, 56 + nodePanels.size() * 30));
+        setMinimumSize(new Dimension(280, 100 + nodePanels.size() * 30));
         setPreferredSize(new Dimension(getSize().width, getMinimumSize().height));
         ((SlideElementEditDialog) parent).setMinimumSize(new Dimension(320, getMinimumSize().height + 130));
         ((SlideElementEditDialog) parent).setPreferredSize(new Dimension(getSize().width+40, getMinimumSize().height));

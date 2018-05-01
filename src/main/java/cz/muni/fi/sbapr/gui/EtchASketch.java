@@ -5,18 +5,19 @@
  */
 package cz.muni.fi.sbapr.gui;
 
+import cz.muni.fi.sbapr.SlideElement;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
-import javax.swing.border.TitledBorder;
 import org.apache.poi.xslf.usermodel.XSLFTextShape;
 
 /**
@@ -25,7 +26,7 @@ import org.apache.poi.xslf.usermodel.XSLFTextShape;
  */
 public class EtchASketch extends JPanel {
 
-    private Map<Integer, LayoutButton> shapes;
+    private final Map<Integer, LayoutButton> shapes;
     private final Dimension layoutDimension;
     private final JDialog parent;
 
@@ -48,6 +49,7 @@ public class EtchASketch extends JPanel {
         shapes.put(shape.getShapeId(), button);
         button.setBorderTitle(((SlideEditDialog) parent).getSlide().getSlideElement(shape).getDescription());
         button.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
             public void mouseReleased(java.awt.event.MouseEvent evt) {
                 layoutButtonMouseReleased(evt, button);
             }
@@ -57,8 +59,8 @@ public class EtchASketch extends JPanel {
     }
 
     private void layoutButtonMouseReleased(java.awt.event.MouseEvent evt, LayoutButton source) {
-        boolean isNewElement = !((SlideEditDialog) parent).getSlide().getSlideElements().containsKey(source.shape.getShapeId());
-        JDialog slideElementWizard = new SlideElementEditDialog(this.parent, ((SlideEditDialog) parent).getSlide().getSlideElement(source.shape), isNewElement);
+        boolean isNewElement = ((SlideElement)((SlideEditDialog) parent).getSlide().getSlideElements().get(source.getShape())).getElement().getAttribute("dataSource").isEmpty();
+        JDialog slideElementWizard = new SlideElementEditDialog(this.parent, ((SlideEditDialog) parent).getSlide().getSlideElement(source.getShape()), isNewElement);
         slideElementWizard.pack();
         slideElementWizard.setVisible(true);
     }
@@ -84,30 +86,8 @@ public class EtchASketch extends JPanel {
         }
         //shapes.values().forEach(button -> button.resize());
     }
-
-    private class LayoutButton extends JPanel {
-
-        private final XSLFTextShape shape;
-        private final TitledBorder border;
-
-        public LayoutButton(XSLFTextShape shape) {
-            this.shape = shape;
-            border = javax.swing.BorderFactory.createTitledBorder("");
-            super.setBorder(border);
-            super.setBackground(new java.awt.Color(250, 250, 250));
-        }
-
-        public void resize() {
-            double x = shape.getAnchor().getX() * ((EtchASketch) getParent()).getScaleWidthFactor();
-            double y = shape.getAnchor().getY() * ((EtchASketch) getParent()).getScaleHeightFactor();
-            double width = shape.getAnchor().getWidth() * ((EtchASketch) getParent()).getScaleWidthFactor();
-            double height = shape.getAnchor().getHeight() * ((EtchASketch) getParent()).getScaleHeightFactor();
-            super.setBounds((int) x, (int) y, (int) width, (int) height);
-        }
-        
-        public void setBorderTitle(String title){
-            this.border.setTitle(title);
-        }
+    
+    public Collection<LayoutButton> getLayoutButtons(){
+        return this.shapes.values();
     }
-
 }

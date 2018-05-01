@@ -93,7 +93,10 @@ public class MainWindow extends javax.swing.JFrame {
         jScrollPane1.setPreferredSize(new java.awt.Dimension(600, 400));
 
         slidesTable.setModel(new SlidesTableModel());
-        slidesTable.setRowHeight(40);
+        slidesTable.setRowHeight(30);
+        slidesTable.setShowVerticalLines(false);
+        slidesTable.setTableHeader(null
+        );
         jScrollPane1.setViewportView(slidesTable);
 
         getContentPane().add(jScrollPane1, java.awt.BorderLayout.CENTER);

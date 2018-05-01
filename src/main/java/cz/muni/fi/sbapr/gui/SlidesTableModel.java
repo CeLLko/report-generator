@@ -29,7 +29,7 @@ public class SlidesTableModel extends AbstractTableModel {
         Slide slide = PresentationGUI.INSTANCE.getSlides().get(rowIndex);
         switch (columnIndex) {
             case 0:
-                return slide.getDescription();
+                    return slide.getDescription().isEmpty() ? "Unknown slide #"+rowIndex : slide.getDescription();
                 //return rowIndex;
             /*case 1:
                 return slide.getDescription();*/

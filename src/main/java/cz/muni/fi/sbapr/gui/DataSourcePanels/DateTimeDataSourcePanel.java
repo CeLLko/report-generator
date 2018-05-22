@@ -41,6 +41,7 @@ public class DateTimeDataSourcePanel extends DataSourcePanel {
 
     /**
      * Creates new form IMGDataSourcePanel
+     * @param parent
      */
     public DateTimeDataSourcePanel(Dialog parent) {
         super(parent);
@@ -412,6 +413,10 @@ public class DateTimeDataSourcePanel extends DataSourcePanel {
         return dateTimeFormatter.format(timeStamp);
     }
 
+    /**
+     *
+     * @param element
+     */
     @Override
     public void loadElement(Element element) {
         fieldTimeZone.setText(getAttribute(element, "timeZone") == null ? "Europe/Prague" : getAttribute(element, "timeZone"));
@@ -438,6 +443,11 @@ public class DateTimeDataSourcePanel extends DataSourcePanel {
         }
     }
 
+    /**
+     *
+     * @param element
+     * @return
+     */
     @Override
     public boolean updateElement(Element element) {
         new IterableNodeList(element.getChildNodes()).forEach(child -> element.removeChild(child));

@@ -23,16 +23,20 @@ public class SlideElement implements Callable<XSLFShape>{
     private DataSource dataSource;
     private Element element;
     private XSLFShape shape;
-    private String description = "Description";
 
+    /**
+     *
+     * @return
+     */
     public String getDescription() {
-        return description;
+        return element.getAttribute("description");
     }
 
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
+    /**
+     *
+     * @param shape
+     * @param element
+     */
     public SlideElement(XSLFShape shape, Element element) {
         this.shape = shape;
         this.element = element;
@@ -53,10 +57,18 @@ public class SlideElement implements Callable<XSLFShape>{
         return res;
     }
 
+    /**
+     *
+     * @return
+     */
     public Element getElement() {
         return element;
     }
     
+    /**
+     *
+     * @param newElement
+     */
     public void setElement(Element newElement){
         new IterableNodeList(element.getChildNodes()).forEach(node -> element.removeChild(node));
         new IterableNodeList(newElement.getChildNodes()).forEach(node -> element.appendChild(node));

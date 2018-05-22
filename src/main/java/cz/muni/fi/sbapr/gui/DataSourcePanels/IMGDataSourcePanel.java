@@ -22,6 +22,7 @@ public class IMGDataSourcePanel extends DataSourcePanel {
 
     /**
      * Creates new form IMGDataSourcePanel
+     * @param parent
      */
     public IMGDataSourcePanel(Dialog parent) {
         super(parent);
@@ -112,6 +113,11 @@ public class IMGDataSourcePanel extends DataSourcePanel {
     private javax.swing.JTextField fieldWidth;
     // End of variables declaration//GEN-END:variables
 
+    /**
+     *
+     * @param element
+     * @return
+     */
     @Override
     public boolean updateElement(Element element) {
         new IterableNodeList(element.getChildNodes()).forEach(child -> element.removeChild(child));
@@ -149,6 +155,10 @@ public class IMGDataSourcePanel extends DataSourcePanel {
 
     }
 
+    /**
+     *
+     * @param element
+     */
     @Override
     public void loadElement(Element element) {
         fieldURL.setText(getAttribute(element, "url") == null ? "URL" : getAttribute(element, "url"));

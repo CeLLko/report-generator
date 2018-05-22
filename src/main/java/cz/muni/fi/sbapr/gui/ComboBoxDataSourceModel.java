@@ -18,6 +18,10 @@ public class ComboBoxDataSourceModel extends AbstractListModel implements ComboB
     private final String[] dataSourceNames;
     private String selectedDataSource = null;
 
+    /**
+     *
+     * @param defaultDataSource
+     */
     public ComboBoxDataSourceModel(String defaultDataSource) {
         dataSourceNames = RGHelper.INSTANCE.getDataSourceNames();
         this.setSelectedItem(defaultDataSource);

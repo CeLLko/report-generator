@@ -22,6 +22,10 @@ public class ComboBoxLayoutModel extends AbstractListModel implements ComboBoxMo
     private final String[] layoutNames;
     private XSLFSlideLayout selectedLayout = null;
 
+    /**
+     *
+     * @param defaultLayout
+     */
     public ComboBoxLayoutModel(XSLFSlideLayout defaultLayout) {
         layoutNames = RGHelper.INSTANCE.getLayoutNames();
         this.setSelectedItem(defaultLayout);
@@ -42,6 +46,10 @@ public class ComboBoxLayoutModel extends AbstractListModel implements ComboBoxMo
         selectedLayout = (XSLFSlideLayout) anItem;
     }
 
+    /**
+     *
+     * @param name
+     */
     public void setSelectedItem(String name) {
         setSelectedItem((XSLFSlideLayout) RGHelper.INSTANCE.getLayout(name));
     }
@@ -51,6 +59,10 @@ public class ComboBoxLayoutModel extends AbstractListModel implements ComboBoxMo
         return selectedLayout;
     }
 
+    /**
+     *
+     * @return
+     */
     public String getSelectedItemName() {
         return RGHelper.INSTANCE.getLayouts().keySet().stream().filter(key -> RGHelper.INSTANCE.getLayout((String) key).equals(selectedLayout)).findFirst().get();
     }

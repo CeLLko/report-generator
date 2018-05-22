@@ -4,11 +4,13 @@
         </dataSource>
         <dataSource id="NagiosGraphDataSource" panel="cz.muni.fi.sbapr.gui.DataSourcePanels.DefaultDataSourcePanel" type="cz.muni.fi.sbapr.DataSources.NagiosGraphDataSource">
         </dataSource>
-        <dataSource id="TextDataSource" panel="cz.muni.fi.sbapr.gui.DataSourcePanels.DefaultDataSourcePanel" type="cz.muni.fi.sbapr.DataSources.TextDataSource">
+        <dataSource id="TextDataSource" panel="cz.muni.fi.sbapr.gui.DataSourcePanels.TextDataSourcePanel" type="cz.muni.fi.sbapr.DataSources.TextDataSource">
         </dataSource>
         <dataSource id="DateTimeDataSource" panel="cz.muni.fi.sbapr.gui.DataSourcePanels.DateTimeDataSourcePanel" type="cz.muni.fi.sbapr.DataSources.DateTimeDataSource">
         </dataSource>
         <dataSource id="PostgreSQLDataSource" panel="cz.muni.fi.sbapr.gui.DataSourcePanels.PostgreSQLDataSourcePanel" type="cz.muni.fi.sbapr.DataSources.PostgreSQLDataSource">
+        </dataSource>
+        <dataSource id="OracleDataSource" panel="cz.muni.fi.sbapr.gui.DataSourcePanels.OracleDataSourcePanel" type="cz.muni.fi.sbapr.DataSources.OracleDataSource">
         </dataSource>
     </dataSources>
     <slides>

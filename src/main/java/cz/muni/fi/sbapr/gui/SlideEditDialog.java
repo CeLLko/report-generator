@@ -14,7 +14,6 @@ import java.util.logging.Logger;
 import java.util.stream.Stream;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JList;
-import javax.xml.transform.TransformerException;
 import org.apache.poi.xslf.usermodel.XSLFShape;
 import org.apache.poi.xslf.usermodel.XSLFSlideLayout;
 import org.apache.poi.xslf.usermodel.XSLFTextShape;
@@ -33,6 +32,10 @@ public class SlideEditDialog extends javax.swing.JDialog {
 
     /**
      * Creates new form SlideEditDialog
+     *
+     * @param parent
+     * @param isNew
+     * @param slide
      */
     public SlideEditDialog(Frame parent, Slide slide, boolean isNew) {
         super(parent, false);
@@ -48,11 +51,7 @@ public class SlideEditDialog extends javax.swing.JDialog {
             descriptionAttr.setValue(fieldDescription.getText());
             changedSlide.getElement().setAttributeNode(descriptionAttr);
         } else {
-            try {
-                changedSlide = slide.clone();
-            } catch (CloneNotSupportedException ex) {
-                Logger.getLogger(SlideEditDialog.class.getName()).log(Level.SEVERE, null, ex);
-            }
+            changedSlide = slide.clone();
             originalLayoutName = changedSlide.getElement().getAttribute("layout");
             ((ComboBoxLayoutModel) comboBoxTemplate.getModel()).setSelectedItem(originalLayoutName);
             fieldDescription.setText(changedSlide.getElement().getAttribute("description"));
@@ -62,14 +61,21 @@ public class SlideEditDialog extends javax.swing.JDialog {
         ((EtchASketch) layoutPanel).repaint();
 
     }
-    
-    public void reloadLayoutButtons(){
-        ((EtchASketch) layoutPanel).getLayoutButtons().forEach(button ->  button.setBorderTitle(this.getSlide().getSlideElement(button.getShape()).getDescription()));
+
+    /**
+     *
+     */
+    public void reloadLayoutButtons() {
+        ((EtchASketch) layoutPanel).getLayoutButtons().forEach(button -> button.setBorderTitle(this.getChangedSlide().getSlideElement(button.getShape()).getDescription()));
         ((EtchASketch) layoutPanel).repaint();
     }
 
-    public Slide getSlide() {
-        return slide;
+    /**
+     *
+     * @return
+     */
+    public Slide getChangedSlide() {
+        return changedSlide;
     }
 
     /**
@@ -229,7 +235,7 @@ public class SlideEditDialog extends javax.swing.JDialog {
         //this.slide.setDescription(this.textFieldDescription.getText());
         changedSlide.getElement().setAttribute("layout", ((ComboBoxLayoutModel) comboBoxTemplate.getModel()).getSelectedItemName());
         changedSlide.getElement().setAttribute("description", fieldDescription.getText());
-        
+
         PresentationGUI.INSTANCE.getSlides().set(PresentationGUI.INSTANCE.getSlides().lastIndexOf(slide), changedSlide);
         hide();
     }//GEN-LAST:event_buttonOKActionPerformed
@@ -257,15 +263,11 @@ public class SlideEditDialog extends javax.swing.JDialog {
         ((EtchASketch) layoutPanel).repaint();
         String selectedLayoutName = ((ComboBoxLayoutModel) comboBoxTemplate.getModel()).getSelectedItemName();
         if (selectedLayoutName == originalLayoutName && !isNew) {
-            try {
-                changedSlide = slide.clone();
-            } catch (CloneNotSupportedException ex) {
-                Logger.getLogger(SlideEditDialog.class.getName()).log(Level.SEVERE, null, ex);
-            }
+            changedSlide = slide.clone();
         } else {
             changed = true;
             changedSlide.getSlideElements().clear();
-        } 
+        }
     }//GEN-LAST:event_comboBoxTemplateActionPerformed
 
     private void layoutPanelComponentResized(java.awt.event.ComponentEvent evt) {//GEN-FIRST:event_layoutPanelComponentResized

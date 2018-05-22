@@ -28,6 +28,9 @@ public class SlideElementEditDialog extends javax.swing.JDialog {
 
     /**
      * Creates new form DataSourceEditDialog
+     * @param parent
+     * @param slideElement
+     * @param isNew
      */
     public SlideElementEditDialog(java.awt.Dialog parent, SlideElement slideElement, boolean isNew) {
         super(parent, true);
@@ -35,16 +38,19 @@ public class SlideElementEditDialog extends javax.swing.JDialog {
         this.isNew = isNew;
         this.slideElement = slideElement;
         if (isNew) {
+            initComponents();
             Attr dataSourceAttr = RGHelper.INSTANCE.getDoc().createAttribute("dataSource");
             dataSourceAttr.setValue("");
             slideElement.getElement().setAttributeNode(dataSourceAttr);
-            initComponents();
+            Attr descriptionAttr = RGHelper.INSTANCE.getDoc().createAttribute("description");
+            descriptionAttr.setValue(fieldDescription.getText());
+            slideElement.getElement().setAttributeNode(descriptionAttr);
         } else{
             originalDataSourceName = slideElement.getElement().getAttribute("dataSource");
             initComponents();
             changeDataSourcePanel();
         }
-        jTextField1.setText(slideElement.getDescription());
+        fieldDescription.setText(slideElement.getDescription());
     }
 
     /**
@@ -60,7 +66,7 @@ public class SlideElementEditDialog extends javax.swing.JDialog {
         buttonCancel = new javax.swing.JButton();
         frameDS = new javax.swing.JInternalFrame();
         comboBoxDataSource = new javax.swing.JComboBox<>();
-        jTextField1 = new javax.swing.JTextField();
+        fieldDescription = new javax.swing.JTextField();
 
         setMinimumSize(new java.awt.Dimension(320, 180));
         addWindowListener(new java.awt.event.WindowAdapter() {
@@ -109,10 +115,10 @@ public class SlideElementEditDialog extends javax.swing.JDialog {
             }
         });
 
-        jTextField1.setText("Description");
-        jTextField1.addActionListener(new java.awt.event.ActionListener() {
+        fieldDescription.setText("Description");
+        fieldDescription.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jTextField1ActionPerformed(evt);
+                fieldDescriptionActionPerformed(evt);
             }
         });
 
@@ -123,7 +129,7 @@ public class SlideElementEditDialog extends javax.swing.JDialog {
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(jTextField1)
+                    .addComponent(fieldDescription)
                     .addComponent(comboBoxDataSource, javax.swing.GroupLayout.Alignment.LEADING, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
                         .addGap(0, 160, Short.MAX_VALUE)
@@ -140,7 +146,7 @@ public class SlideElementEditDialog extends javax.swing.JDialog {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(fieldDescription, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(comboBoxDataSource, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
@@ -160,7 +166,7 @@ public class SlideElementEditDialog extends javax.swing.JDialog {
     private void buttonOKActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonOKActionPerformed
         slideElement.getElement().setAttribute("dataSource", (String) ((ComboBoxDataSourceModel) comboBoxDataSource.getModel()).getSelectedItem());
         Element newElement = (Element) slideElement.getElement().cloneNode(true);
-        slideElement.setDescription(jTextField1.getText());
+        slideElement.getElement().setAttribute("description", fieldDescription.getText());
             this.parent.reloadLayoutButtons();
         if (!changed) {
             hide();
@@ -189,9 +195,9 @@ public class SlideElementEditDialog extends javax.swing.JDialog {
         changeDataSourcePanel();
     }//GEN-LAST:event_comboBoxDataSourceActionPerformed
 
-    private void jTextField1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField1ActionPerformed
+    private void fieldDescriptionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fieldDescriptionActionPerformed
         changed = true;
-    }//GEN-LAST:event_jTextField1ActionPerformed
+    }//GEN-LAST:event_fieldDescriptionActionPerformed
 
     private void changeDataSourcePanel() {
         String selectedItem = (String) comboBoxDataSource.getSelectedItem();
@@ -205,6 +211,9 @@ public class SlideElementEditDialog extends javax.swing.JDialog {
         resize();
     }
 
+    /**
+     *
+     */
     public void resize() {
         setMinimumSize(new Dimension(340, frameDS.getContentPane().getMinimumSize().height + 160));
         setPreferredSize(getMinimumSize());
@@ -216,8 +225,8 @@ public class SlideElementEditDialog extends javax.swing.JDialog {
     private javax.swing.JButton buttonCancel;
     private javax.swing.JButton buttonOK;
     private javax.swing.JComboBox<String> comboBoxDataSource;
+    private javax.swing.JTextField fieldDescription;
     private javax.swing.JInternalFrame frameDS;
-    private javax.swing.JTextField jTextField1;
     // End of variables declaration//GEN-END:variables
 
 }

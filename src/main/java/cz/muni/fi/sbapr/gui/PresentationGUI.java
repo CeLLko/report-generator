@@ -5,21 +5,20 @@
  */
 package cz.muni.fi.sbapr.gui;
 
+import Exceptions.TemplateParserException;
 import cz.muni.fi.sbapr.Slide;
 import cz.muni.fi.sbapr.utils.RGHelper;
 import cz.muni.fi.sbapr.utils.SlideArrayList;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -33,39 +32,47 @@ import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.exception.ZipExceptionConstants;
 import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.ZipParameters;
+import org.apache.commons.io.FilenameUtils;
 import org.w3c.dom.Element;
 
-/**
- *
- * @author Adam
- */
 public enum PresentationGUI {
-    INSTANCE;
 
-    public void setSlideTable(SlidesTableModel slideTable) {
-        this.slideTable = slideTable;
-    }
-    private SlideArrayList slides = new SlideArrayList();
+    INSTANCE;
 
     private SlidesTableModel slideTable;
     private JFrame window;
     private boolean changed = false;
 
-    //Move this
     private ZipFile currentFile = null;
     private boolean encrypted = false;
+
+    public void setSlideTable(SlidesTableModel slideTable) {
+        this.slideTable = slideTable;
+    }
+    private SlideArrayList slides = new SlideArrayList() {
+        @Override
+        public boolean remove(Object object) {
+            boolean res = super.remove(object);
+            slideTable.fireTableDataChanged();
+            return res;
+        }
+
+        @Override
+        public void clear() {
+            super.clear();
+            slideTable.fireTableDataChanged();
+        }
+    };
 
     public void createNew(File pptxFile) {
         try {
             RGHelper.INSTANCE.parse(pptxFile);
-        } catch (FileNotFoundException ex) {
-            Logger.getLogger(PresentationGUI.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            Logger.getLogger(PresentationGUI.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (TemplateParserException ex) {
+            JOptionPane.showMessageDialog(window, "Couldn't parse the file, make sure if's a correct file.");
         }
     }
 
-    public void open(ZipFile zipFile) {
+    public void open(ZipFile zipFile) throws IOException {
         try {
             if (zipFile.isValidZipFile()) {
                 if (zipFile.isEncrypted()) {
@@ -104,13 +111,13 @@ public enum PresentationGUI {
                 currentFile = zipFile;
             }
         } catch (IOException | ZipException ex) {
-            Logger.getLogger(PresentationGUI.class.getName()).log(Level.SEVERE, null, ex);
+            throw new IOException(ex.getMessage());
         }
         slides.addAll(RGHelper.INSTANCE.parseSlides());
         slideTable.fireTableDataChanged();
     }
 
-    public void save() {
+    public void save() throws IOException {
         if (currentFile == null) {
             saveAs();
         } else {
@@ -121,46 +128,80 @@ public enum PresentationGUI {
                 }
                 currentFile.addFiles(new ArrayList<>(Arrays.asList(RGHelper.INSTANCE.getXMLFile(), RGHelper.INSTANCE.getPPTXFile())), encrypted ? RGHelper.INSTANCE.getZipParams() : new ZipParameters());
                 setChanged(false);
-            } catch (ZipException ex) {
-                Logger.getLogger(PresentationGUI.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (ZipException | TemplateParserException ex) {
+                throw new IOException(ex.getMessage());
             }
         }
     }
 
-    public void saveAs() {
+    public void saveAs() throws IOException {
         try {
-
             JFileChooser fc = new JFileChooser();
             fc.setDialogType(JFileChooser.SAVE_DIALOG);
             fc.setMultiSelectionEnabled(false);
             if (fc.showOpenDialog(window) == JFileChooser.APPROVE_OPTION) {
                 //TODO capture access error
+                File file = fc.getSelectedFile();
+                if (FilenameUtils.getExtension(file.getName()).equalsIgnoreCase("rg")) {
+                    // filename is OK as-is
+                } else {
+                    file = new File(file.toString() + ".rg");
+                    file = new File(file.getParentFile(), FilenameUtils.getBaseName(file.getName()) + ".rg");
+                }
                 fc.getSelectedFile().delete();
-                ZipFile zipFile = new ZipFile(fc.getSelectedFile());
-                zipFile.createZipFile(new ArrayList<>(Arrays.asList(RGHelper.INSTANCE.getXMLFile(), RGHelper.INSTANCE.getPPTXFile())), encrypted ? RGHelper.INSTANCE.getZipParams() : new ZipParameters());
+                ZipFile zipFile = new ZipFile(file);
+                //zipFile.addStream(RGHelper.INSTANCE.getXMLFile(), encrypted ? RGHelper.INSTANCE.getZipParams() : new ZipParameters());
+                //zipFile.addStream(RGHelper.INSTANCE.getPPTXFile(), encrypted ? RGHelper.INSTANCE.getZipParams() : new ZipParameters());
+                ArrayList<File> files = new ArrayList<>();
+                files.add(RGHelper.INSTANCE.getPPTXFile());
+                files.add(RGHelper.INSTANCE.getXMLFile());
+                zipFile.createZipFile(files, encrypted ? RGHelper.INSTANCE.getZipParams() : new ZipParameters());
                 setChanged(false);
             }
-        } catch (ZipException | SecurityException ex) {
-            Logger.getLogger(PresentationGUI.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (ZipException | SecurityException | TemplateParserException ex) {
+            throw new IOException(ex.getMessage());
         }
     }
 
-    public void exit() {
-        if (PresentationGUI.INSTANCE.isChanged()) {
-            Object[] options = {"Save", "Don't save", "Cancel"};
-            int res = JOptionPane.showOptionDialog(window, "Would you like to save changes?", "Unsaved changes", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[2]);
-            switch (res) {
-                case JOptionPane.YES_OPTION:
-                    PresentationGUI.INSTANCE.save();
-                    System.exit(0);
-                    break;
-                case JOptionPane.NO_OPTION:
-                    System.exit(0);
-                    break;
+    public void setPassword() {
+
+        JPanel panel = new JPanel();
+        JLabel label = new JLabel("Enter a new password:");
+        JPasswordField pass = new JPasswordField(50);
+        JLabel labelConf = new JLabel("Confirm your password:");
+        JPasswordField passConf = new JPasswordField(50);
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.add(label);
+        panel.add(pass);
+        panel.add(labelConf);
+        panel.add(passConf);
+        String[] options = new String[]{"OK", "Cancel"};
+        JOptionPane passPane = new JOptionPane(panel, JOptionPane.NO_OPTION, JOptionPane.PLAIN_MESSAGE,
+                null, options, options[0]);
+        JDialog dialog = passPane.createDialog(window, "");
+        boolean correctPass = false;
+        do {
+            dialog.show();
+            if (options[0] == passPane.getValue()) {
+                char[] password = pass.getPassword();
+                char[] passwordConf = passConf.getPassword();
+                if (Arrays.equals(passwordConf, password)) {
+                    if (password.length == 0) {
+                        encrypted = false;
+                    } else {
+                        encrypted = true;
+                    }
+                    correctPass = true;
+                    RGHelper.INSTANCE.getZipParams().setPassword(password);
+                } else {
+                    pass.setBorder(BorderFactory.createLineBorder(new java.awt.Color(255, 0, 0), 3));
+                    passConf.setBorder(BorderFactory.createLineBorder(new java.awt.Color(255, 0, 0), 3));
+                    correctPass = false;
+                }
+            } else {
+                return;
             }
-        } else {
-            System.exit(0);
-        }
+        } while (!correctPass);
     }
 
     public void close() {
@@ -186,6 +227,7 @@ public enum PresentationGUI {
     public void createSlide() {
         CreateSlideWorker createSlideWorker = new CreateSlideWorker();
         createSlideWorker.execute();
+
     }
 
     private class CreateSlideWorker extends SwingWorker<Slide, Void> {
@@ -211,23 +253,35 @@ public enum PresentationGUI {
                 slideTable.fireTableRowsInserted(slides.size() - 1, slides.size() - 1);
                 setChanged(true);
             } catch (InterruptedException | ExecutionException ex) {
-                Logger.getLogger(SlidesTableModel.class.getName()).log(Level.SEVERE, null, ex);
+                JOptionPane.showMessageDialog(window, "Error occured while creating a new slide");
             }
         }
     }
 
+    /**
+     *
+     * @param rows
+     */
     public void deleteSlide(int[] rows) {
         if (rows[0] != -1) {
             DeleteSlideWorker deleteSlideWorker = new DeleteSlideWorker(rows);
             deleteSlideWorker.execute();
+
         }
     }
 
+    /**
+     *
+     */
     public class DeleteSlideWorker extends SwingWorker<Boolean, Void> {
 
         private final List<Integer> rows;
         private boolean result = true;
 
+        /**
+         *
+         * @param rows
+         */
         public DeleteSlideWorker(int[] rows) {
             this.rows = new ArrayList<>(Arrays.stream(rows).boxed().collect(Collectors.toList()));
             Collections.sort(this.rows);
@@ -240,7 +294,6 @@ public enum PresentationGUI {
                     Slide slide = PresentationGUI.INSTANCE.getSlides().get(row);
                     PresentationGUI.INSTANCE.getSlides().remove(slide);
                 });
-                //slide.getDialog().dispose();
             } catch (ArrayIndexOutOfBoundsException e) {
                 result = false;
             }
@@ -259,6 +312,7 @@ public enum PresentationGUI {
         if (selectedRow != -1) {
             DuplicateSlideWorker duplicateSlideWorker = new DuplicateSlideWorker(selectedRow);
             duplicateSlideWorker.execute();
+
         }
     }
 
@@ -285,24 +339,38 @@ public enum PresentationGUI {
                 slideTable.fireTableRowsInserted(slides.size() - 1, slides.size() - 1);
                 setChanged(true);
             } catch (InterruptedException | ExecutionException ex) {
-                Logger.getLogger(SlidesTableModel.class.getName()).log(Level.SEVERE, null, ex);
+                JOptionPane.showMessageDialog(window, "Error occured while duplicating a slide");
             }
         }
     }
 
+    /**
+     *
+     * @param fromRow
+     * @param toRow
+     */
     public void moveSlide(int fromRow, int toRow) {
         if (fromRow != -1 && toRow != -1) {
             MoveSlideWorker moveSlideWorker = new MoveSlideWorker(fromRow, toRow);
             moveSlideWorker.execute();
+
         }
     }
 
+    /**
+     *
+     */
     public class MoveSlideWorker extends SwingWorker<Boolean, Void> {
 
         private final int toRow;
         private final int fromRow;
         private boolean result = true;
 
+        /**
+         *
+         * @param fromRow
+         * @param toRow
+         */
         public MoveSlideWorker(int fromRow, int toRow) {
             this.fromRow = fromRow;
             this.toRow = toRow;
@@ -316,7 +384,6 @@ public enum PresentationGUI {
                 Element to = getSlides().get(Math.min(fromRow, toRow)).getElement();
                 to.getParentNode().insertBefore(from, to);
                 getSlides().swap(fromRow, toRow);
-                //Collections.swap(PresentationGUI.INSTANCE.getSlides(), fromRow, toRow);
             } catch (ArrayIndexOutOfBoundsException e) {
                 result = false;
             }
@@ -331,9 +398,14 @@ public enum PresentationGUI {
 
     }
 
+    /**
+     *
+     * @param row
+     */
     public void updateSlide(int row) {
         UpdateSlideWorker updateSlideWorker = new UpdateSlideWorker(row);
         updateSlideWorker.execute();
+
     }
 
     public class UpdateSlideWorker extends SwingWorker<Boolean, Void> {

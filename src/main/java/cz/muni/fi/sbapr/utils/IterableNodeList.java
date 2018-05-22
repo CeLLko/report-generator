@@ -15,6 +15,10 @@ import org.w3c.dom.NodeList;
  */
 public class IterableNodeList extends ArrayList<Node>{
         
+    /**
+     *
+     * @param nodeList
+     */
     public IterableNodeList(NodeList nodeList){
         super();
         for(int i=0;i<nodeList.getLength();i++){

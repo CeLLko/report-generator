@@ -5,6 +5,7 @@
  */
 package cz.muni.fi.sbapr.utils;
 
+import Exceptions.TemplateParserException;
 import cz.muni.fi.sbapr.DataSources.DataSource;
 import cz.muni.fi.sbapr.Slide;
 import cz.muni.fi.sbapr.gui.DataSourcePanels.DataSourcePanel;
@@ -12,9 +13,12 @@ import cz.muni.fi.sbapr.gui.DataSourcePanels.DefaultDataSourcePanel;
 import java.awt.Dialog;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.StringWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -26,7 +30,6 @@ import java.util.logging.Logger;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
@@ -40,7 +43,8 @@ import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.util.Zip4jConstants;
-import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.poi.openxml4j.exceptions.NotOfficeXmlFileException;
 import org.apache.poi.xslf.usermodel.XMLSlideShow;
 import org.apache.poi.xslf.usermodel.XSLFSlideLayout;
 import org.w3c.dom.Document;
@@ -49,11 +53,8 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-/**
- *
- * @author Adam
- */
 public enum RGHelper {
+
     INSTANCE;
 
     private boolean initialized = false;
@@ -72,24 +73,29 @@ public enum RGHelper {
             setCompressionMethod(Zip4jConstants.COMP_DEFLATE);
             setCompressionLevel(Zip4jConstants.DEFLATE_LEVEL_FASTEST);
             setEncryptFiles(true);
-            setEncryptionMethod(Zip4jConstants.AES_STRENGTH_256);
+            setEncryptionMethod(Zip4jConstants.ENC_METHOD_AES);
+            setAesKeyStrength(Zip4jConstants.AES_STRENGTH_256);
         }
     };
 
-    public void parse(ZipFile zipFile) throws IOException {
+    public void parse(ZipFile zipFile) throws TemplateParserException {
         try {
-            //zipFile.setPassword("hodor".toCharArray());
-            //zipParams.setPassword("hodor".toCharArray());
-            pptxEntry = new File("template.pptx");
-            xmlEntry = new File("report.xml");
+            pptxEntry = File.createTempFile("template", "pptx");
+            pptxEntry.deleteOnExit();
+            xmlEntry = File.createTempFile("report", "xml");
+            xmlEntry.deleteOnExit();
             List fileHeaders = zipFile.getFileHeaders();
             for (int i = 0; i < fileHeaders.size(); i++) {
                 FileHeader fileHeader = (FileHeader) fileHeaders.get(i);
-                if (fileHeader.getFileName().toLowerCase().endsWith(".xml")) {
-                    FileUtils.copyInputStreamToFile(zipFile.getInputStream(fileHeader), xmlEntry);
+                if (fileHeader.getFileName().toLowerCase().endsWith("xml")) {
+                    try (FileOutputStream out = new FileOutputStream(xmlEntry)) {
+                        IOUtils.copy(zipFile.getInputStream(fileHeader), out);
+                    }
                     doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(xmlEntry);
-                } else if (fileHeader.getFileName().toLowerCase().endsWith(".pptx") || fileHeader.getFileName().toLowerCase().endsWith(".ppt")) {
-                    FileUtils.copyInputStreamToFile(zipFile.getInputStream(fileHeader), pptxEntry);
+                } else if (fileHeader.getFileName().toLowerCase().endsWith("pptx") || fileHeader.getFileName().toLowerCase().endsWith("ppt")) {
+                    try (FileOutputStream out = new FileOutputStream(pptxEntry)) {
+                        IOUtils.copy(zipFile.getInputStream(fileHeader), out);
+                    }
                     template = new XMLSlideShow(new FileInputStream(pptxEntry));
                 }
             }
@@ -98,33 +104,30 @@ public enum RGHelper {
             parseLayouts(template);
             parseDataSources();
             initialized = true;
-        } catch (NullPointerException | ZipException | ParserConfigurationException | SAXException ex) {
-            Logger.getLogger(RGHelper.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (NullPointerException | ZipException | ParserConfigurationException | IOException | SAXException ex) {
+            throw new TemplateParserException(ex.getMessage());
         }
     }
-
-    public void parse(File pptxFile) throws IOException {
+    
+    public void parse(File pptxFile) throws TemplateParserException {
         try {
-            pptxEntry = new File("template.pptx");
-            
-            xmlEntry = new File(getClass().getClassLoader().getResource("report.xml").getFile());
-            doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(xmlEntry);
+            pptxEntry = File.createTempFile("template", "pptx");
+            pptxEntry.deleteOnExit();
+            xmlEntry = File.createTempFile("report", "xml");
+            xmlEntry.deleteOnExit();
+            try (FileOutputStream out = new FileOutputStream(pptxEntry)) {
+                IOUtils.copy(new FileInputStream(pptxFile), out);
+            }
+            doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new File(getClass().getClassLoader().getResource("report.xml").getFile()));
             xPath = XPathFactory.newInstance().newXPath();
             doc.getDocumentElement().normalize();
             parseDataSources();
-            //doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
-            //Element rootElement = doc.createElement("report");
-            //doc.appendChild(rootElement);
-            //Element slides = doc.createElement("slides");
-            //rootElement.appendChild(slides);
-
+            
             template = new XMLSlideShow(new FileInputStream(pptxFile));
             parseLayouts(template);
             initialized = true;
-        } catch (ParserConfigurationException ex) {
-            Logger.getLogger(RGHelper.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (SAXException ex) {
-            Logger.getLogger(RGHelper.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (NotOfficeXmlFileException | ParserConfigurationException | IOException | SAXException ex) {
+            throw new TemplateParserException(ex.getMessage());
         }
     }
 
@@ -139,21 +142,20 @@ public enum RGHelper {
         return slides;
     }
 
-    private void parseDataSources() {
+    private void parseDataSources(){
         IterableNodeList DSList = RGHelper.INSTANCE.getNodeListByName("dataSource");
         DSList.stream().filter(node -> node.getNodeType() == Node.ELEMENT_NODE).forEach(node -> {
-            Element element = (Element) node;
-            String id = element.getAttribute("id");
-            String fullClassName = element.getAttribute("type");
-            String fullPanelClassName = element.getAttribute("panel");
             try {
+                Element element = (Element) node;
+                String id = element.getAttribute("id");
+                String fullClassName = element.getAttribute("type");
+                String fullPanelClassName = element.getAttribute("panel");
                 this.dataSources.put(id, Class.forName(fullClassName));
                 this.dataSourcePanels.put(id, Class.forName(fullPanelClassName));
-
             } catch (ClassNotFoundException ex) {
-                Logger.getLogger(RGHelper.class
-                        .getName()).log(Level.SEVERE, null, ex);
+                throw new IllegalArgumentException();
             }
+
         });
     }
 
@@ -177,17 +179,21 @@ public enum RGHelper {
         return keys.toArray(new String[keys.size()]);
     }
 
-    public File getXMLFile() {
-        try {
+    public File getXMLFile() throws TemplateParserException {
+        try (FileOutputStream out = new FileOutputStream(xmlEntry)) {
             TransformerFactory transformerFactory = TransformerFactory.newInstance();
             Transformer transformer = transformerFactory.newTransformer();
+            
+            StringWriter sw = new StringWriter();
+            StreamResult result = new StreamResult(sw);
             DOMSource source = new DOMSource(doc);
-            StreamResult result = new StreamResult(this.xmlEntry);
             transformer.transform(source, result);
-        } catch (TransformerConfigurationException ex) {
-            Logger.getLogger(RGHelper.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (TransformerException ex) {
-            Logger.getLogger(RGHelper.class.getName()).log(Level.SEVERE, null, ex);
+            
+            String xmlString = sw.toString();
+            out.write(xmlString.getBytes(), 0, xmlString.getBytes().length);
+            
+        } catch (IOException | TransformerException ex) {
+            throw new TemplateParserException(ex.getMessage());
         }
         return xmlEntry;
     }
@@ -199,7 +205,7 @@ public enum RGHelper {
     public ZipParameters getZipParams() {
         return zipParams;
     }
-
+    
     public Document getDoc() {
         return doc;
     }
@@ -228,8 +234,7 @@ public enum RGHelper {
             nodeList = (NodeList) xPath.compile(expression).evaluate(doc, XPathConstants.NODESET);
 
         } catch (XPathExpressionException ex) {
-            Logger.getLogger(RGHelper.class
-                    .getName()).log(Level.SEVERE, null, ex);
+            throw new IllegalArgumentException(ex.getMessage());
         }
         return new IterableNodeList(nodeList);
     }
@@ -250,7 +255,6 @@ public enum RGHelper {
         try {
             return (DataSourcePanel) (dataSourcePanels.get(className).getConstructor(Dialog.class).newInstance(cont));
         } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | SecurityException | IllegalArgumentException | InvocationTargetException ex) {
-            Logger.getLogger(RGHelper.class.getName()).log(Level.SEVERE, null, ex);
             return new DefaultDataSourcePanel(cont);
         }
     }
@@ -263,15 +267,4 @@ public enum RGHelper {
     public boolean isInitialized() {
         return initialized;
     }
-
-    private static final void copyInputStream(InputStream in, OutputStream out) throws IOException {
-        byte[] buffer = new byte[1024];
-        int len;
-        while ((len = in.read(buffer)) >= 0) {
-            out.write(buffer, 0, len);
-        }
-        in.close();
-        out.close();
-    }
-
 }

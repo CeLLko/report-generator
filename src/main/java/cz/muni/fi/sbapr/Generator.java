@@ -5,12 +5,10 @@
  */
 package cz.muni.fi.sbapr;
 
-import cz.muni.fi.sbapr.gui.PresentationGUI;
+import Exceptions.TemplateParserException;
 import cz.muni.fi.sbapr.utils.RGHelper;
-import cz.muni.fi.sbapr.utils.WindowsRegistry;
+import java.io.File;
 import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.BorderFactory;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
@@ -19,7 +17,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import javax.xml.xpath.*;
 import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.exception.ZipExceptionConstants;
@@ -29,26 +26,35 @@ import net.lingala.zip4j.model.FileHeader;
  *
  * @author adamg
  */
-public class NewMain {
+public class Generator {
 
     /**
      * @param args the command line arguments
+     * @throws Exceptions.TemplateParserException
      */
-    public static void main(String[] args) throws XPathExpressionException, IOException {
+    public static void main(String[] args) throws TemplateParserException {
         ZipFile zipFile = null;
+        File pptxFile = null;
         JFileChooser fc = new JFileChooser();
         fc.setFileFilter(new FileNameExtensionFilter("Report Generator files", "rg"));
         try {
-            if (args.length == 0) {
-                if (fc.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
-                    zipFile = new ZipFile(fc.getSelectedFile());
-                } else {
-                    return;
-                }
-            } else {
-                zipFile = new ZipFile(args[0]);
+            switch (args.length) {
+                case 0:
+                    if (fc.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+                        zipFile = new ZipFile(fc.getSelectedFile());
+                    } else {
+                        return;
+                    }
+                    break;
+                case 1:
+                    zipFile = new ZipFile(args[0]);
+                    break;
+                default:
+                    zipFile = new ZipFile(args[0]);
+                    pptxFile = new File(args[1]);
+                    break;
             }
-            if ( zipFile.isValidZipFile()) {
+            if (zipFile.isValidZipFile()) {
                 if (zipFile.isEncrypted()) {
                     JPanel panel = new JPanel();
                     JLabel label = new JLabel("Enter a password:");
@@ -81,14 +87,14 @@ public class NewMain {
                     } while (!correctPass);
                 }
                 RGHelper.INSTANCE.parse(zipFile);
+                Presentation.INSTANCE.init();
+                Presentation.INSTANCE.build(pptxFile);
             }
         } catch (IOException | ZipException ex) {
-            Logger.getLogger(PresentationGUI.class.getName()).log(Level.SEVERE, null, ex);
+            throw new TemplateParserException(ex.getMessage());
         }
-        RGHelper.INSTANCE.parse(zipFile);
-        Presentation.INSTANCE.init("name.pptx");
-        Presentation.INSTANCE.build();
-        String value = WindowsRegistry.readRegistry("HKLM\\SOFTWARE\\Microsoft\\Office\\16.0\\PowerPoint\\InstallRoot", "Path");
-        Process p = Runtime.getRuntime().exec(value + "\\POWERPNT.EXE E:\\Dokumenty\\Skola\\SBAPR\\SBAPR\\name.pptx");
+        //RGHelper.INSTANCE.parse(zipFile);
+        //String value = WindowsRegistry.readRegistry("HKLM\\SOFTWARE\\Microsoft\\Office\\16.0\\PowerPoint\\InstallRoot", "Path");
+        //Process p = Runtime.getRuntime().exec(value + "\\POWERPNT.EXE E:\\Dokumenty\\Skola\\SBAPR\\SBAPR\\name.pptx");
     }
 }

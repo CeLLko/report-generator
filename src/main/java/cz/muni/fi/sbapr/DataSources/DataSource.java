@@ -12,20 +12,38 @@ import org.w3c.dom.Node;
 /**
  * The datasource superclass
  * @author Adam
+ * @param <T>
  */
 public abstract class DataSource<T>{
     
     private Element element;
     
+    /**
+     *
+     * @param element
+     */
     protected DataSource(Element element){
         this.element = element;
     }
     
+    /**
+     *
+     * @return
+     */
     public abstract T getData();
     
+    /**
+     *
+     * @param shape
+     * @return
+     */
     public abstract XSLFShape updateShape(XSLFShape shape);
     
-    
+    /**
+     *
+     * @param name
+     * @return
+     */
     protected String getAttribute(String name){
         Node node = element.getElementsByTagName(name).item(0);
         return node == null ? null : node.getTextContent();

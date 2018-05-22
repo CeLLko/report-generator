@@ -12,24 +12,34 @@ import java.awt.FlowLayout;
  *
  * @author Adam
  */
-public class Thingy extends javax.swing.JPanel {
+public class ParameterPanel extends javax.swing.JPanel {
 
     DefaultDataSourcePanel parent;
 
     /**
      * Creates new form Thingy
      */
-    public Thingy() {
+    public ParameterPanel() {
         //super(new FlowLayout());
         initComponents();
     }
 
-    public Thingy(DefaultDataSourcePanel parent) {
+    /**
+     *
+     * @param parent
+     */
+    public ParameterPanel(DefaultDataSourcePanel parent) {
         this.parent = parent;
         initComponents();
     }
 
-    public Thingy(DefaultDataSourcePanel parent, String name, String value) {
+    /**
+     *
+     * @param parent
+     * @param name
+     * @param value
+     */
+    public ParameterPanel(DefaultDataSourcePanel parent, String name, String value) {
         this.parent = parent;
         initComponents();
         fieldName.setText(name);
@@ -116,6 +126,10 @@ public class Thingy extends javax.swing.JPanel {
         return fieldName.getText();
     }
 
+    /**
+     *
+     * @return
+     */
     public String getValue() {
         return fieldValue.getText();
     }

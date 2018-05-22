@@ -19,7 +19,7 @@ import org.w3c.dom.Element;
  *
  * @author Adam
  */
-public class PostgreSQLDataSourcePanel extends DataSourcePanel {
+public class OracleDataSourcePanel extends DataSourcePanel {
 
     private final RSyntaxTextArea SQLAreaSyntax;
 
@@ -28,7 +28,7 @@ public class PostgreSQLDataSourcePanel extends DataSourcePanel {
      *
      * @param parent
      */
-    public PostgreSQLDataSourcePanel(Dialog parent) {
+    public OracleDataSourcePanel(Dialog parent) {
         super(parent);
         SQLAreaSyntax = new RSyntaxTextArea(5, 60);
         SQLAreaSyntax.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_SQL);
@@ -36,7 +36,6 @@ public class PostgreSQLDataSourcePanel extends DataSourcePanel {
         SQLAreaSyntax.setLineWrap(true);
         SQLAreaSyntax.setWrapStyleWord(true);
         initComponents();
-
     }
 
     /**
@@ -52,7 +51,7 @@ public class PostgreSQLDataSourcePanel extends DataSourcePanel {
         userField = new javax.swing.JTextField();
         portField = new javax.swing.JTextField();
         passField = new javax.swing.JPasswordField();
-        dbField = new javax.swing.JTextField();
+        SIDField = new javax.swing.JTextField();
         sqlField = new RTextScrollPane(SQLAreaSyntax);
 
         setMinimumSize(new java.awt.Dimension(300, 150));
@@ -72,18 +71,18 @@ public class PostgreSQLDataSourcePanel extends DataSourcePanel {
         userField.setToolTipText("");
 
         portField.setHorizontalAlignment(javax.swing.JTextField.CENTER);
-        portField.setText("5432");
+        portField.setText("1521");
         portField.setToolTipText("Port");
 
         passField.setHorizontalAlignment(javax.swing.JTextField.CENTER);
         passField.setText("pass");
 
-        dbField.setHorizontalAlignment(javax.swing.JTextField.CENTER);
-        dbField.setText("DB");
-        dbField.setToolTipText("Database name");
-        dbField.addActionListener(new java.awt.event.ActionListener() {
+        SIDField.setHorizontalAlignment(javax.swing.JTextField.CENTER);
+        SIDField.setText("XE");
+        SIDField.setToolTipText("Database name");
+        SIDField.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                dbFieldActionPerformed(evt);
+                SIDFieldActionPerformed(evt);
             }
         });
 
@@ -101,7 +100,7 @@ public class PostgreSQLDataSourcePanel extends DataSourcePanel {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(portField, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(dbField, javax.swing.GroupLayout.DEFAULT_SIZE, 68, Short.MAX_VALUE))
+                        .addComponent(SIDField, javax.swing.GroupLayout.DEFAULT_SIZE, 68, Short.MAX_VALUE))
                     .addComponent(sqlField, javax.swing.GroupLayout.Alignment.TRAILING)
                     .addComponent(userField)
                     .addComponent(passField, javax.swing.GroupLayout.Alignment.TRAILING))
@@ -114,7 +113,7 @@ public class PostgreSQLDataSourcePanel extends DataSourcePanel {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(hostField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(portField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(dbField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(SIDField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(userField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -129,9 +128,9 @@ public class PostgreSQLDataSourcePanel extends DataSourcePanel {
         // TODO add your handling code here:
     }//GEN-LAST:event_hostFieldActionPerformed
 
-    private void dbFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbFieldActionPerformed
+    private void SIDFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_SIDFieldActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_dbFieldActionPerformed
+    }//GEN-LAST:event_SIDFieldActionPerformed
 
     /**
      *
@@ -145,8 +144,8 @@ public class PostgreSQLDataSourcePanel extends DataSourcePanel {
         Document doc = RGHelper.INSTANCE.getDoc();
         Element hostElement = doc.createElement("host");
         hostElement.appendChild(doc.createTextNode(hostField.getText()));
-        Element dbElement = doc.createElement("db");
-        dbElement.appendChild(doc.createTextNode(dbField.getText()));
+        Element sidElement = doc.createElement("sid");
+        sidElement.appendChild(doc.createTextNode(SIDField.getText()));
         Element sqlElement = doc.createElement("statement");
         sqlElement.appendChild(doc.createTextNode(SQLAreaSyntax.getText()));
 
@@ -171,7 +170,7 @@ public class PostgreSQLDataSourcePanel extends DataSourcePanel {
         element.appendChild(passElement);
 
         element.appendChild(hostElement);
-        element.appendChild(dbElement);
+        element.appendChild(sidElement);
         element.appendChild(sqlElement);
         return true;
 
@@ -184,15 +183,15 @@ public class PostgreSQLDataSourcePanel extends DataSourcePanel {
     @Override
     public void loadElement(Element element) {
         hostField.setText(getAttribute(element, "host") == null ? "Host" : getAttribute(element, "host"));
-        portField.setText(getAttribute(element, "port") == null ? "5432" : getAttribute(element, "port"));
-        dbField.setText(getAttribute(element, "db") == null ? "DB" : getAttribute(element, "db"));
+        portField.setText(getAttribute(element, "port") == null ? "1521" : getAttribute(element, "port"));
+        SIDField.setText(getAttribute(element, "sid") == null ? "SID" : getAttribute(element, "sid"));
         userField.setText(getAttribute(element, "user") == null ? "USER" : getAttribute(element, "user"));
         passField.setText("*****");
         SQLAreaSyntax.setText(getAttribute(element, "statement") == null ? "SELECT" : getAttribute(element, "statement"));
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JTextField dbField;
+    private javax.swing.JTextField SIDField;
     private javax.swing.JTextField hostField;
     private javax.swing.JPasswordField passField;
     private javax.swing.JTextField portField;

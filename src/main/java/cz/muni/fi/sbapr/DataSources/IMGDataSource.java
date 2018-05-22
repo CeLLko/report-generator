@@ -23,12 +23,20 @@ import org.apache.poi.xslf.usermodel.XSLFPictureShape;
 import org.apache.poi.xslf.usermodel.XSLFShape;
 import org.w3c.dom.Element;
 
+/**
+ *
+ * @author Adam
+ */
 public class IMGDataSource extends DataSource<BufferedImage> {
 
     private URL url;
     private Optional<Integer> width;
     private Optional<Integer> height;
 
+    /**
+     *
+     * @param element
+     */
     public IMGDataSource(Element element) {
         super(element);
         try {
@@ -43,6 +51,10 @@ public class IMGDataSource extends DataSource<BufferedImage> {
         }
     }
 
+    /**
+     *
+     * @return
+     */
     @Override
     public BufferedImage getData() {
         try {
@@ -65,22 +77,28 @@ public class IMGDataSource extends DataSource<BufferedImage> {
         return null;
     }
 
+    /**
+     *
+     * @param shape
+     * @return
+     */
     @Override
     public XSLFShape updateShape(XSLFShape shape) {
         XSLFPictureShape picture = null;
         try {
+
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             ImageIO.write(this.getData(), "png", baos);
             byte[] pictureData = baos.toByteArray();
-            
+
             XSLFPictureData idx = Presentation.INSTANCE.getPPTX().addPicture(pictureData, XSLFPictureData.PictureType.PNG);
             picture = shape.getSheet().createPicture(idx);
 
             Rectangle2D anchor = shape.getAnchor();
             shape.getSheet().removeShape(shape);
             picture.setAnchor(anchor);
-        } catch (IOException ex) {
-            Logger.getLogger(IMGDataSource.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (Exception ex) {
+            System.err.println("Problem occured while updating shape " + shape.getShapeName() + " with " + getClass().getName());
         }
         return picture;
     }

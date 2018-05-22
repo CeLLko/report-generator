@@ -29,7 +29,7 @@ import org.w3c.dom.Element;
  *
  * @author Adam
  */
-public class PostgreSQLDataSource extends DataSource<Object> {
+public class OracleDataSource extends DataSource<Object> {
 
     private final String db;
     private final String user;
@@ -40,17 +40,12 @@ public class PostgreSQLDataSource extends DataSource<Object> {
      *
      * @param element
      */
-    public PostgreSQLDataSource(Element element) {
+    public OracleDataSource(Element element) {
         super(element);
-        this.db = "jdbc:postgresql://obiwan.gdovin.eu:5432/test1";
-        this.user = "postgres";
-        this.pass = "123456";
-        this.statement = "SELECT * FROM \"public\".\"MOCK_DATA\" WHERE id<6";
-
-        //this.db = "jdbc:postgresql://"+getAttribute("host")+":"+getAttribute("port")+"/"+getAttribute("db");
-        //this.user = getAttribute("user");
-        //this.pass = getAttribute("pass");
-        //this.statement = getAttribute("statement");
+        this.db = "jdbc:oracle:thin:@" + getAttribute("host") + ":" + getAttribute("port") + ":" + getAttribute("sid");
+        this.user = getAttribute("user");
+        this.pass = getAttribute("pass");
+        this.statement = getAttribute("statement");
     }
 
     /**
@@ -64,7 +59,7 @@ public class PostgreSQLDataSource extends DataSource<Object> {
         Connection c = null;
         Statement stmt = null;
         try {
-            Class.forName("org.postgresql.Driver");
+            Class.forName("oracle.jdbc.driver.OracleDriver");
             c = DriverManager.getConnection(db, user, pass);
             c.setAutoCommit(false);
             c.setReadOnly(true);
@@ -151,10 +146,8 @@ public class PostgreSQLDataSource extends DataSource<Object> {
                 }
                 shape.getSheet().removeShape(shape);
                 tbl.setAnchor(anchor);
-
                 return tbl;
             }
-
         } catch (Exception ex) {
             System.err.println("Problem occured while updating shape " + shape.getShapeName() + " with " + getClass().getName());
             return shape;

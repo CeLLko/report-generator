@@ -9,7 +9,6 @@ import cz.muni.fi.sbapr.utils.RGHelper;
 import cz.muni.fi.sbapr.utils.IterableNodeList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.Callable;
@@ -29,7 +28,7 @@ import org.w3c.dom.Node;
  *
  * @author adamg
  */
-public class Slide implements Callable<XSLFSlide>, Cloneable {
+public class Slide implements Callable<XSLFSlide> {
 
     private XSLFSlide slide;
     private Element element;
@@ -63,24 +62,31 @@ public class Slide implements Callable<XSLFSlide>, Cloneable {
             }
             return res;
         }
-        
+
         @Override
-        public void clear(){   
+        public void clear() {
             Iterator it = entrySet().iterator();
-            while (it.hasNext())
-            {
-               Entry item = (Entry) it.next();
-               it.remove();
+            while (it.hasNext()) {
+                Entry item = (Entry) it.next();
+                //it.remove();
+                remove(item);
             }
         }
     };
 
+    /**
+     *
+     */
     public Slide() {
         this.element = RGHelper.INSTANCE.getDoc().createElement("slide");
         IterableNodeList list = (RGHelper.INSTANCE.getNodeListByName("slides"));
         (list.stream().findAny().get()).appendChild(element);
     }
 
+    /**
+     *
+     * @param element
+     */
     public Slide(Element element) {
         this.element = element;
         XSLFSlideLayout layout = RGHelper.INSTANCE.getLayout(element.getAttribute("layout"));
@@ -92,7 +98,7 @@ public class Slide implements Callable<XSLFSlide>, Cloneable {
                 .forEachOrdered((slideElement) -> {
                     int shapeId = Integer.parseInt(slideElement.getAttribute("placeholderID"));
                     Optional<XSLFShape> shape = slide.getShapes().stream().filter(s -> s.getShapeId() == shapeId).findAny();
-                    if(shape.isPresent()){                        
+                    if (shape.isPresent()) {
                         slideElements.put(shape.get().getShapeId(), new SlideElement(shape.get(), slideElement));
                     }
                 });
@@ -105,26 +111,42 @@ public class Slide implements Callable<XSLFSlide>, Cloneable {
         return slide;
     }
 
+    /**
+     *
+     * @return
+     */
     public Element getElement() {
         return element;
     }
 
+    /**
+     *
+     * @param shape
+     * @return
+     */
     public SlideElement getSlideElement(XSLFShape shape) {
         return slideElements.get(shape);
     }
-    
+
+    /**
+     *
+     * @return
+     */
     public Map getSlideElements() {
         return slideElements;
     }
 
+    /**
+     *
+     * @return
+     */
     public String getDescription() {
         return element.getAttribute("description");
     }
-    
+
     @Override
-    public Slide clone() throws CloneNotSupportedException{
-        Slide clone = (Slide) super.clone();
-        clone.element = (Element) element.cloneNode(true);
-        return clone;
+    public Slide clone(){
+        Element newElement = (Element) element.cloneNode(true);
+        return new Slide(newElement);
     }
 }

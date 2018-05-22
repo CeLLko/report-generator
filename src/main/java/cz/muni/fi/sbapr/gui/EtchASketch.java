@@ -12,6 +12,7 @@ import java.awt.GridBagLayout;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.util.Collection;
+import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -30,6 +31,11 @@ public class EtchASketch extends JPanel {
     private final Dimension layoutDimension;
     private final JDialog parent;
 
+    /**
+     *
+     * @param dimension
+     * @param parent
+     */
     public EtchASketch(Dimension dimension, SlideEditDialog parent) {
         this.parent = parent;
         this.layoutDimension = dimension;
@@ -44,10 +50,14 @@ public class EtchASketch extends JPanel {
         });
     }
 
+    /**
+     *
+     * @param shape
+     */
     public void addPlaceholderButton(XSLFTextShape shape) {
         LayoutButton button = new LayoutButton(shape);
         shapes.put(shape.getShapeId(), button);
-        button.setBorderTitle(((SlideEditDialog) parent).getSlide().getSlideElement(shape).getDescription());
+        button.setBorderTitle(((SlideEditDialog) parent).getChangedSlide().getSlideElement(shape).getDescription());
         button.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
             public void mouseReleased(java.awt.event.MouseEvent evt) {
@@ -59,35 +69,56 @@ public class EtchASketch extends JPanel {
     }
 
     private void layoutButtonMouseReleased(java.awt.event.MouseEvent evt, LayoutButton source) {
-        boolean isNewElement = ((SlideElement)((SlideEditDialog) parent).getSlide().getSlideElements().get(source.getShape())).getElement().getAttribute("dataSource").isEmpty();
-        JDialog slideElementWizard = new SlideElementEditDialog(this.parent, ((SlideEditDialog) parent).getSlide().getSlideElement(source.getShape()), isNewElement);
+        boolean isNewElement = ((SlideElement) ((SlideEditDialog) parent).getChangedSlide().getSlideElements().get(source.getShape())).getElement().getAttribute("dataSource").isEmpty();
+        JDialog slideElementWizard = new SlideElementEditDialog(this.parent, ((SlideEditDialog) parent).getChangedSlide().getSlideElement(source.getShape()), isNewElement);
         slideElementWizard.pack();
         slideElementWizard.setVisible(true);
     }
 
+    /**
+     *
+     * @return
+     */
     public double getScaleWidthFactor() {
         return (this.getWidth() / (double) this.layoutDimension.width);
     }
 
+    /**
+     *
+     * @return
+     */
     public double getScaleHeightFactor() {
         return (this.getHeight() / (double) this.layoutDimension.height);
     }
 
+    /**
+     *
+     */
     public void shake() {
         shapes.clear();
         this.removeAll();
     }
 
+    /**
+     *
+     */
     public void resize() {
-        Iterator it = shapes.entrySet().iterator();
-        while (it.hasNext()) {
+        try {
+            Iterator it = shapes.entrySet().iterator();
+            while (it.hasNext()) {
                 LayoutButton item = (LayoutButton) ((Entry) it.next()).getValue();
                 item.resize();
+            }
+        } catch (ConcurrentModificationException ex) {
+
         }
-        //shapes.values().forEach(button -> button.resize());
     }
-    
-    public Collection<LayoutButton> getLayoutButtons(){
+
+    /**
+     *
+     * @return
+     */
+    public Collection<LayoutButton> getLayoutButtons() {
         return this.shapes.values();
     }
 }

@@ -2,15 +2,18 @@ package cz.muni.fi.sbapr.gui;
 
 import cz.muni.fi.sbapr.utils.RGHelper;
 import java.awt.Point;
+import java.awt.Window;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
+import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
@@ -27,18 +30,23 @@ import net.lingala.zip4j.exception.ZipException;
  *
  * @author adamg
  */
-public class MainWindow extends javax.swing.JFrame {
+public class Editor extends javax.swing.JFrame {
 
     /**
      * Creates new form MainWindow
      */
-    public MainWindow() {
+    public Editor() {
         initComponents();
+        Window thisWindow = this;
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent windowEvent) {
-                PresentationGUI.INSTANCE.exit();
+                try {
+                    ExitMenu();
+                } catch (IOException ex) {
+                    JOptionPane.showMessageDialog(thisWindow, "Couldn't save file");
+                }
             }
         });
         PresentationGUI.INSTANCE.setSlideTable((SlidesTableModel) slidesTable.getModel());
@@ -54,7 +62,7 @@ public class MainWindow extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jScrollPane1 = new javax.swing.JScrollPane();
+        slidesScrollPanel = new javax.swing.JScrollPane();
         slidesTable = new javax.swing.JTable();
         slidesTable.addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent mouseEvent) {
@@ -66,48 +74,46 @@ public class MainWindow extends javax.swing.JFrame {
                 }
             }
         });
-        jPanel1 = new javax.swing.JPanel();
-        jToolBar1 = new javax.swing.JToolBar();
+        toolsPanel = new javax.swing.JPanel();
+        toolsBar = new javax.swing.JToolBar();
         buttonAdd = new javax.swing.JButton();
         buttonDelete = new javax.swing.JButton();
         buttonDuplicate = new javax.swing.JButton();
         buttonMoveUp = new javax.swing.JButton();
         buttonMoveDown = new javax.swing.JButton();
         buttonEdit = new javax.swing.JButton();
-        jMenuBar1 = new javax.swing.JMenuBar();
-        jMenu1 = new javax.swing.JMenu();
-        FileMenuNew = new javax.swing.JMenuItem();
-        FileMenuOpen = new javax.swing.JMenuItem();
-        FileMenuSave = new javax.swing.JMenuItem();
-        FileMenuSaveAs = new javax.swing.JMenuItem();
-        jSeparator1 = new javax.swing.JPopupMenu.Separator();
-        jMenuItem3 = new javax.swing.JMenuItem();
-        jMenu2 = new javax.swing.JMenu();
-        jMenuItem4 = new javax.swing.JMenuItem();
+        menuBar = new javax.swing.JMenuBar();
+        fileMenu = new javax.swing.JMenu();
+        fileMenuNew = new javax.swing.JMenuItem();
+        fileMenuOpen = new javax.swing.JMenuItem();
+        fileMenuSave = new javax.swing.JMenuItem();
+        fileMenuSaveAs = new javax.swing.JMenuItem();
         jSeparator2 = new javax.swing.JPopupMenu.Separator();
-        jMenuItem5 = new javax.swing.JMenuItem();
+        fileMenuSetPassword = new javax.swing.JMenuItem();
+        jSeparator1 = new javax.swing.JPopupMenu.Separator();
+        fileMenuExit = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setMinimumSize(new java.awt.Dimension(230, 200));
 
-        jScrollPane1.setPreferredSize(new java.awt.Dimension(600, 400));
+        slidesScrollPanel.setPreferredSize(new java.awt.Dimension(600, 400));
 
         slidesTable.setModel(new SlidesTableModel());
         slidesTable.setRowHeight(30);
         slidesTable.setShowVerticalLines(false);
         slidesTable.setTableHeader(null
         );
-        jScrollPane1.setViewportView(slidesTable);
+        slidesScrollPanel.setViewportView(slidesTable);
 
-        getContentPane().add(jScrollPane1, java.awt.BorderLayout.CENTER);
+        getContentPane().add(slidesScrollPanel, java.awt.BorderLayout.CENTER);
 
-        jPanel1.setBackground(new java.awt.Color(255, 255, 255));
-        jPanel1.setPreferredSize(new java.awt.Dimension(400, 33));
+        toolsPanel.setBackground(new java.awt.Color(255, 255, 255));
+        toolsPanel.setPreferredSize(new java.awt.Dimension(400, 33));
 
-        jToolBar1.setBackground(new java.awt.Color(255, 255, 255));
-        jToolBar1.setRollover(true);
-        jToolBar1.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
-        jToolBar1.setPreferredSize(new java.awt.Dimension(400, 33));
+        toolsBar.setBackground(new java.awt.Color(255, 255, 255));
+        toolsBar.setRollover(true);
+        toolsBar.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
+        toolsBar.setPreferredSize(new java.awt.Dimension(400, 33));
 
         buttonAdd.setBackground(new java.awt.Color(255, 255, 255));
         buttonAdd.setIcon(new javax.swing.ImageIcon(getClass().getResource("/gui/new.png"))); // NOI18N
@@ -125,7 +131,7 @@ public class MainWindow extends javax.swing.JFrame {
                 buttonAddActionPerformed(evt);
             }
         });
-        jToolBar1.add(buttonAdd);
+        toolsBar.add(buttonAdd);
 
         buttonDelete.setBackground(new java.awt.Color(255, 255, 255));
         buttonDelete.setIcon(new javax.swing.ImageIcon(getClass().getResource("/gui/delete.png"))); // NOI18N
@@ -138,7 +144,7 @@ public class MainWindow extends javax.swing.JFrame {
                 buttonDeleteMouseReleased(evt);
             }
         });
-        jToolBar1.add(buttonDelete);
+        toolsBar.add(buttonDelete);
 
         buttonDuplicate.setBackground(new java.awt.Color(255, 255, 255));
         buttonDuplicate.setIcon(new javax.swing.ImageIcon(getClass().getResource("/gui/duplicate.png"))); // NOI18N
@@ -151,7 +157,7 @@ public class MainWindow extends javax.swing.JFrame {
                 buttonDuplicateMouseReleased(evt);
             }
         });
-        jToolBar1.add(buttonDuplicate);
+        toolsBar.add(buttonDuplicate);
 
         buttonMoveUp.setBackground(new java.awt.Color(255, 255, 255));
         buttonMoveUp.setIcon(new javax.swing.ImageIcon(getClass().getResource("/gui/up.png"))); // NOI18N
@@ -164,7 +170,7 @@ public class MainWindow extends javax.swing.JFrame {
                 buttonMoveUpMouseReleased(evt);
             }
         });
-        jToolBar1.add(buttonMoveUp);
+        toolsBar.add(buttonMoveUp);
 
         buttonMoveDown.setBackground(new java.awt.Color(255, 255, 255));
         buttonMoveDown.setIcon(new javax.swing.ImageIcon(getClass().getResource("/gui/down.png"))); // NOI18N
@@ -177,7 +183,7 @@ public class MainWindow extends javax.swing.JFrame {
                 buttonMoveDownMouseReleased(evt);
             }
         });
-        jToolBar1.add(buttonMoveDown);
+        toolsBar.add(buttonMoveDown);
 
         buttonEdit.setBackground(new java.awt.Color(255, 255, 255));
         buttonEdit.setIcon(new javax.swing.ImageIcon(getClass().getResource("/gui/edit.png"))); // NOI18N
@@ -190,86 +196,85 @@ public class MainWindow extends javax.swing.JFrame {
                 buttonEditMouseReleased(evt);
             }
         });
-        jToolBar1.add(buttonEdit);
+        toolsBar.add(buttonEdit);
 
-        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
-        jPanel1.setLayout(jPanel1Layout);
-        jPanel1Layout.setHorizontalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jToolBar1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+        javax.swing.GroupLayout toolsPanelLayout = new javax.swing.GroupLayout(toolsPanel);
+        toolsPanel.setLayout(toolsPanelLayout);
+        toolsPanelLayout.setHorizontalGroup(
+            toolsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(toolsBar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
-        jPanel1Layout.setVerticalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addComponent(jToolBar1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+        toolsPanelLayout.setVerticalGroup(
+            toolsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(toolsPanelLayout.createSequentialGroup()
+                .addComponent(toolsBar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(0, 0, Short.MAX_VALUE))
         );
 
-        getContentPane().add(jPanel1, java.awt.BorderLayout.PAGE_END);
+        getContentPane().add(toolsPanel, java.awt.BorderLayout.PAGE_END);
 
-        jMenu1.setText("File");
+        fileMenu.setText("File");
 
-        FileMenuNew.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_N, java.awt.event.InputEvent.CTRL_MASK));
-        FileMenuNew.setText("New");
-        FileMenuNew.addActionListener(new java.awt.event.ActionListener() {
+        fileMenuNew.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_N, java.awt.event.InputEvent.CTRL_MASK));
+        fileMenuNew.setText("New");
+        fileMenuNew.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                FileMenuNewActionPerformed(evt);
+                fileMenuNewActionPerformed(evt);
             }
         });
-        jMenu1.add(FileMenuNew);
+        fileMenu.add(fileMenuNew);
 
-        FileMenuOpen.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_O, java.awt.event.InputEvent.CTRL_MASK));
-        FileMenuOpen.setText("Open");
-        FileMenuOpen.addActionListener(new java.awt.event.ActionListener() {
+        fileMenuOpen.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_O, java.awt.event.InputEvent.CTRL_MASK));
+        fileMenuOpen.setText("Open");
+        fileMenuOpen.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                FileMenuOpenActionPerformed(evt);
+                fileMenuOpenActionPerformed(evt);
             }
         });
-        jMenu1.add(FileMenuOpen);
+        fileMenu.add(fileMenuOpen);
 
-        FileMenuSave.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, java.awt.event.InputEvent.CTRL_MASK));
-        FileMenuSave.setText("Save");
-        FileMenuSave.setToolTipText("");
-        FileMenuSave.addActionListener(new java.awt.event.ActionListener() {
+        fileMenuSave.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, java.awt.event.InputEvent.CTRL_MASK));
+        fileMenuSave.setText("Save");
+        fileMenuSave.setToolTipText("");
+        fileMenuSave.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                FileMenuSaveActionPerformed(evt);
+                fileMenuSaveActionPerformed(evt);
             }
         });
-        jMenu1.add(FileMenuSave);
+        fileMenu.add(fileMenuSave);
 
-        FileMenuSaveAs.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, java.awt.event.InputEvent.SHIFT_MASK | java.awt.event.InputEvent.CTRL_MASK));
-        FileMenuSaveAs.setText("Save as");
-        FileMenuSaveAs.setToolTipText("");
-        FileMenuSaveAs.addActionListener(new java.awt.event.ActionListener() {
+        fileMenuSaveAs.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, java.awt.event.InputEvent.SHIFT_MASK | java.awt.event.InputEvent.CTRL_MASK));
+        fileMenuSaveAs.setText("Save as");
+        fileMenuSaveAs.setToolTipText("");
+        fileMenuSaveAs.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                FileMenuSaveAsActionPerformed(evt);
+                fileMenuSaveAsActionPerformed(evt);
             }
         });
-        jMenu1.add(FileMenuSaveAs);
-        jMenu1.add(jSeparator1);
+        fileMenu.add(fileMenuSaveAs);
+        fileMenu.add(jSeparator2);
 
-        jMenuItem3.setText("Exit");
-        jMenuItem3.addMouseListener(new java.awt.event.MouseAdapter() {
+        fileMenuSetPassword.setText("Set Password");
+        fileMenuSetPassword.setToolTipText("");
+        fileMenuSetPassword.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                fileMenuSetPasswordActionPerformed(evt);
+            }
+        });
+        fileMenu.add(fileMenuSetPassword);
+        fileMenu.add(jSeparator1);
+
+        fileMenuExit.setText("Exit");
+        fileMenuExit.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseReleased(java.awt.event.MouseEvent evt) {
-                jMenuItem3MouseReleased(evt);
+                fileMenuExitMouseReleased(evt);
             }
         });
-        jMenu1.add(jMenuItem3);
+        fileMenu.add(fileMenuExit);
 
-        jMenuBar1.add(jMenu1);
+        menuBar.add(fileMenu);
 
-        jMenu2.setText("Slides");
-
-        jMenuItem4.setText("Generate .pptx");
-        jMenu2.add(jMenuItem4);
-        jMenu2.add(jSeparator2);
-
-        jMenuItem5.setText("Preview selected slides");
-        jMenu2.add(jMenuItem5);
-
-        jMenuBar1.add(jMenu2);
-
-        setJMenuBar(jMenuBar1);
+        setJMenuBar(menuBar);
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -278,7 +283,8 @@ public class MainWindow extends javax.swing.JFrame {
         if (RGHelper.INSTANCE.isInitialized()) {
             PresentationGUI.INSTANCE.createSlide();
         } else {
-            OpenFileMenu();
+            NewFileMenu();
+            PresentationGUI.INSTANCE.createSlide();
         }
     }//GEN-LAST:event_buttonAddMouseReleased
 
@@ -294,7 +300,7 @@ public class MainWindow extends javax.swing.JFrame {
         try {
             PresentationGUI.INSTANCE.duplicateSlide(slidesTable.getSelectedRow());
         } catch (CloneNotSupportedException ex) {
-            Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(Editor.class.getName()).log(Level.SEVERE, null, ex);
         }
     }//GEN-LAST:event_buttonDuplicateMouseReleased
 
@@ -321,16 +327,58 @@ public class MainWindow extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_buttonEditMouseReleased
 
-    private void jMenuItem3MouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jMenuItem3MouseReleased
-        PresentationGUI.INSTANCE.exit();
-    }//GEN-LAST:event_jMenuItem3MouseReleased
+    private void fileMenuExitMouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_fileMenuExitMouseReleased
+        try {
+            ExitMenu();
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(this, "Couldn't save file");
+        }
+    }//GEN-LAST:event_fileMenuExitMouseReleased
 
-    private void FileMenuOpenActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_FileMenuOpenActionPerformed
+    private void fileMenuOpenActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fileMenuOpenActionPerformed
         OpenFileMenu();
-    }//GEN-LAST:event_FileMenuOpenActionPerformed
+    }//GEN-LAST:event_fileMenuOpenActionPerformed
+
+    private void ExitMenu() throws IOException {
+        if (PresentationGUI.INSTANCE.isChanged() && PresentationGUI.INSTANCE.getSlides().size() > 0) {
+            Object[] options = {"Save", "Don't save", "Cancel"};
+            int res = JOptionPane.showOptionDialog(this, "Would you like to save changes?", "Unsaved changes", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[2]);
+            switch (res) {
+                case JOptionPane.YES_OPTION:
+                    PresentationGUI.INSTANCE.save();
+                    System.exit(0);
+                    break;
+                case JOptionPane.NO_OPTION:
+                    System.exit(0);
+                    break;
+            }
+        } else {
+            System.exit(0);
+        }
+    }
+
+    private void CloseMenu() {
+        try {
+            if (PresentationGUI.INSTANCE.isChanged() && PresentationGUI.INSTANCE.getSlides().size() > 0) {
+                Object[] options = {"Save", "Don't save", "Cancel"};
+                int res = JOptionPane.showOptionDialog(this, "Would you like to save changes?", "Unsaved changes", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[2]);
+                switch (res) {
+                    case JOptionPane.YES_OPTION:
+                        PresentationGUI.INSTANCE.save();
+                        break;
+                    case JOptionPane.NO_OPTION:
+                        break;
+                }
+            PresentationGUI.INSTANCE.getSlides().clear();
+            }
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(this, "Couldn't save the file.");
+        }
+    }
 
     private void OpenFileMenu() {
         try {
+            CloseMenu();
             JFileChooser fc = new JFileChooser();
             fc.setFileFilter(new FileNameExtensionFilter("Report Generator files", "rg"));
             if (fc.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
@@ -339,15 +387,13 @@ public class MainWindow extends javax.swing.JFrame {
                     PresentationGUI.INSTANCE.open(zipFile);
                 }
             }
-        } catch (ZipException ex) {
-            Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (ZipException | IOException ex) {
+            JOptionPane.showMessageDialog(this, "Couldn't parse the file, make sure if's a correct file.");
         }
     }
-    private void FileMenuSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_FileMenuSaveActionPerformed
-        PresentationGUI.INSTANCE.save();
-    }//GEN-LAST:event_FileMenuSaveActionPerformed
 
-    private void FileMenuNewActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_FileMenuNewActionPerformed
+    private void NewFileMenu() {
+        CloseMenu();
         File pptxFile = null;
         JFileChooser fc = new JFileChooser();
         fc.setFileFilter(new FileNameExtensionFilter("PowerPoint Template", "ppt", "pptx"));
@@ -355,7 +401,18 @@ public class MainWindow extends javax.swing.JFrame {
             pptxFile = fc.getSelectedFile();
             PresentationGUI.INSTANCE.createNew(pptxFile);
         }
-    }//GEN-LAST:event_FileMenuNewActionPerformed
+    }
+    private void fileMenuSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fileMenuSaveActionPerformed
+        try {
+            PresentationGUI.INSTANCE.save();
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(this, "Couldn't save the file.");
+        }
+    }//GEN-LAST:event_fileMenuSaveActionPerformed
+
+    private void fileMenuNewActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fileMenuNewActionPerformed
+        NewFileMenu();
+    }//GEN-LAST:event_fileMenuNewActionPerformed
 
     private void buttonAddActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonAddActionPerformed
 
@@ -369,9 +426,17 @@ public class MainWindow extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_jMenu1MouseClicked
 
-    private void FileMenuSaveAsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_FileMenuSaveAsActionPerformed
-        PresentationGUI.INSTANCE.saveAs();
-    }//GEN-LAST:event_FileMenuSaveAsActionPerformed
+    private void fileMenuSaveAsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fileMenuSaveAsActionPerformed
+        try {
+            PresentationGUI.INSTANCE.saveAs();
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(this, "Couldn't save the file.");
+        }
+    }//GEN-LAST:event_fileMenuSaveAsActionPerformed
+
+    private void fileMenuSetPasswordActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fileMenuSetPasswordActionPerformed
+        PresentationGUI.INSTANCE.setPassword();
+    }//GEN-LAST:event_fileMenuSetPasswordActionPerformed
 
     /**
      * @param args the command line arguments
@@ -391,21 +456,22 @@ public class MainWindow extends javax.swing.JFrame {
                 }
             }
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(MainWindow.class
+            java.util.logging.Logger.getLogger(Editor.class
                     .getName()).log(java.util.logging.Level.SEVERE, null, ex);
 
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(MainWindow.class
+            java.util.logging.Logger.getLogger(Editor.class
                     .getName()).log(java.util.logging.Level.SEVERE, null, ex);
 
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(MainWindow.class
+            java.util.logging.Logger.getLogger(Editor.class
                     .getName()).log(java.util.logging.Level.SEVERE, null, ex);
 
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(MainWindow.class
+            java.util.logging.Logger.getLogger(Editor.class
                     .getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
+        //</editor-fold>
         //</editor-fold>
 
         /* Create and display the form */
@@ -415,36 +481,34 @@ public class MainWindow extends javax.swing.JFrame {
                     UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 
                 } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ex) {
-                    Logger.getLogger(MainWindow.class
+                    Logger.getLogger(Editor.class
                             .getName()).log(Level.SEVERE, null, ex);
                 }
-                new MainWindow().setVisible(true);
+                new Editor().setVisible(true);
             }
         });
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JMenuItem FileMenuNew;
-    private javax.swing.JMenuItem FileMenuOpen;
-    private javax.swing.JMenuItem FileMenuSave;
-    private javax.swing.JMenuItem FileMenuSaveAs;
     private javax.swing.JButton buttonAdd;
     private javax.swing.JButton buttonDelete;
     private javax.swing.JButton buttonDuplicate;
     private javax.swing.JButton buttonEdit;
     private javax.swing.JButton buttonMoveDown;
     private javax.swing.JButton buttonMoveUp;
-    private javax.swing.JMenu jMenu1;
-    private javax.swing.JMenu jMenu2;
-    private javax.swing.JMenuBar jMenuBar1;
-    private javax.swing.JMenuItem jMenuItem3;
-    private javax.swing.JMenuItem jMenuItem4;
-    private javax.swing.JMenuItem jMenuItem5;
-    private javax.swing.JPanel jPanel1;
-    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JMenu fileMenu;
+    private javax.swing.JMenuItem fileMenuExit;
+    private javax.swing.JMenuItem fileMenuNew;
+    private javax.swing.JMenuItem fileMenuOpen;
+    private javax.swing.JMenuItem fileMenuSave;
+    private javax.swing.JMenuItem fileMenuSaveAs;
+    private javax.swing.JMenuItem fileMenuSetPassword;
     private javax.swing.JPopupMenu.Separator jSeparator1;
     private javax.swing.JPopupMenu.Separator jSeparator2;
-    private javax.swing.JToolBar jToolBar1;
+    private javax.swing.JMenuBar menuBar;
+    private javax.swing.JScrollPane slidesScrollPanel;
     private javax.swing.JTable slidesTable;
+    private javax.swing.JToolBar toolsBar;
+    private javax.swing.JPanel toolsPanel;
     // End of variables declaration//GEN-END:variables
 }

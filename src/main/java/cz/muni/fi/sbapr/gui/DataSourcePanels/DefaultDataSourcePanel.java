@@ -7,7 +7,7 @@ package cz.muni.fi.sbapr.gui.DataSourcePanels;
 
 import cz.muni.fi.sbapr.gui.SlideEditDialog;
 import cz.muni.fi.sbapr.gui.SlideElementEditDialog;
-import cz.muni.fi.sbapr.gui.Thingy;
+import cz.muni.fi.sbapr.gui.ParameterPanel;
 import cz.muni.fi.sbapr.utils.IterableNodeList;
 import cz.muni.fi.sbapr.utils.RGHelper;
 import java.awt.Dialog;
@@ -25,9 +25,13 @@ import org.w3c.dom.Node;
  */
 public class DefaultDataSourcePanel extends DataSourcePanel {
 
-    private List<Thingy> nodePanels = new ArrayList<>();
+    private List<ParameterPanel> nodePanels = new ArrayList<>();
 
-    public List<Thingy> getNodePanels() {
+    /**
+     *
+     * @return
+     */
+    public List<ParameterPanel> getNodePanels() {
         return nodePanels;
     }
 
@@ -114,25 +118,32 @@ public class DefaultDataSourcePanel extends DataSourcePanel {
     // End of variables declaration//GEN-END:variables
 
     private void addNodePanel() {
-        Thingy nodePanel = new Thingy(this);
+        ParameterPanel nodePanel = new ParameterPanel(this);
         panelNodes.add(nodePanel);
         nodePanels.add(nodePanel);
         resize();
     }
 
     private void addNodePanel(String name, String value) {
-        Thingy nodePanel = new Thingy(this, name, value);
+        ParameterPanel nodePanel = new ParameterPanel(this, name, value);
         panelNodes.add(nodePanel);
         nodePanels.add(nodePanel);
         resize();
     }
 
-    public void removeNodePanel(Thingy nodePanel) {
+    /**
+     *
+     * @param nodePanel
+     */
+    public void removeNodePanel(ParameterPanel nodePanel) {
         nodePanels.remove(nodePanel);
         panelNodes.remove(nodePanel);
         resize();
     }
 
+    /**
+     *
+     */
     public void resize() {
         setMinimumSize(new Dimension(280, 100 + nodePanels.size() * 30));
         setPreferredSize(new Dimension(getSize().width, getMinimumSize().height));
@@ -142,6 +153,11 @@ public class DefaultDataSourcePanel extends DataSourcePanel {
         revalidate();
     }
 
+    /**
+     *
+     * @param element
+     * @return
+     */
     @Override
     public boolean updateElement(Element element) {
         new IterableNodeList(element.getChildNodes()).forEach(child -> element.removeChild(child));
@@ -157,6 +173,10 @@ public class DefaultDataSourcePanel extends DataSourcePanel {
         return true;
     }
 
+    /**
+     *
+     * @param element
+     */
     @Override
     public void loadElement(Element element) {
         new IterableNodeList(element.getChildNodes()).stream()

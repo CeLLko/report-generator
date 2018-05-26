@@ -5,7 +5,7 @@
  */
 package cz.muni.fi.sbapr.gui;
 
-import Exceptions.TemplateParserException;
+import cz.muni.fi.sbapr.exceptions.TemplateParserException;
 import cz.muni.fi.sbapr.Slide;
 import cz.muni.fi.sbapr.utils.RGHelper;
 import cz.muni.fi.sbapr.utils.SlideArrayList;

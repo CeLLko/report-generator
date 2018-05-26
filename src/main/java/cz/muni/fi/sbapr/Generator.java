@@ -5,7 +5,8 @@
  */
 package cz.muni.fi.sbapr;
 
-import Exceptions.TemplateParserException;
+import cz.muni.fi.sbapr.exceptions.GeneratorException;
+import cz.muni.fi.sbapr.exceptions.TemplateParserException;
 import cz.muni.fi.sbapr.utils.RGHelper;
 import java.io.File;
 import java.io.IOException;
@@ -30,7 +31,7 @@ public class Generator {
 
     /**
      * @param args the command line arguments
-     * @throws Exceptions.TemplateParserException
+     * @throws cz.muni.fi.sbapr.exceptions.TemplateParserException
      */
     public static void main(String[] args) throws TemplateParserException {
         ZipFile zipFile = null;
@@ -88,13 +89,18 @@ public class Generator {
                 }
                 RGHelper.INSTANCE.parse(zipFile);
                 Presentation.INSTANCE.init();
-                Presentation.INSTANCE.build(pptxFile);
             }
         } catch (IOException | ZipException ex) {
             throw new TemplateParserException(ex.getMessage());
         }
-        //RGHelper.INSTANCE.parse(zipFile);
-        //String value = WindowsRegistry.readRegistry("HKLM\\SOFTWARE\\Microsoft\\Office\\16.0\\PowerPoint\\InstallRoot", "Path");
-        //Process p = Runtime.getRuntime().exec(value + "\\POWERPNT.EXE E:\\Dokumenty\\Skola\\SBAPR\\SBAPR\\name.pptx");
+        try {
+            Presentation.INSTANCE.build(pptxFile);
+            //RGHelper.INSTANCE.parse(zipFile);
+            //String value = WindowsRegistry.readRegistry("HKLM\\SOFTWARE\\Microsoft\\Office\\16.0\\PowerPoint\\InstallRoot", "Path");
+            //Process p = Runtime.getRuntime().exec(value + "\\POWERPNT.EXE E:\\Dokumenty\\Skola\\SBAPR\\SBAPR\\name.pptx");
+        } catch (GeneratorException ex) {
+            JOptionPane.showMessageDialog(null, "Error occured while creating presentation");
+        }
+        System.exit(0);
     }
 }

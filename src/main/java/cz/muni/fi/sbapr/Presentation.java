@@ -5,8 +5,10 @@
  */
 package cz.muni.fi.sbapr;
 
+import cz.muni.fi.sbapr.exceptions.GeneratorException;
 import cz.muni.fi.sbapr.utils.RGHelper;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -47,12 +49,12 @@ public enum Presentation {
     /**
      * Builds the presentation file
      */
-    public void build(File file) throws IOException {
+    public void build(File file) throws GeneratorException {
         ExecutorService pool = Executors.newFixedThreadPool(slides.size());
         try {
             pool.invokeAll(slides);
         } catch (InterruptedException ex) {
-            Logger.getLogger(Presentation.class.getName()).log(Level.SEVERE, null, ex);
+            throw new GeneratorException(ex.getMessage());
         } finally {
             pool.shutdown();
         }
@@ -75,14 +77,22 @@ public enum Presentation {
             }
         }
        
-        out = new FileOutputStream(file);
-        PPTX.write(out);
-        out.close();
+        try {
+            out = new FileOutputStream(file);
+            PPTX.write(out);
+            out.close();
+        } catch (IOException ex) {
+            throw new GeneratorException(ex.getMessage());
+        }
         System.out.println("Presentation saved successfully");
     }
 
     public XMLSlideShow getPPTX() {
         return PPTX;
+    }
+
+    public List<Slide> getSlides() {
+        return slides;
     }
 
     /**

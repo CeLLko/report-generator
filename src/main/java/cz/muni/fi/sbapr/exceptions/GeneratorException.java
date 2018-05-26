@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package Exceptions;
+package cz.muni.fi.sbapr.exceptions;
 
 import java.io.IOException;
 
@@ -11,8 +11,8 @@ import java.io.IOException;
  *
  * @author Adam
  */
-public class TemplateParserException extends IOException{
-    public TemplateParserException(String msg){
+public class GeneratorException extends IOException{
+    public GeneratorException(String msg){
         super(msg);
     }
 }

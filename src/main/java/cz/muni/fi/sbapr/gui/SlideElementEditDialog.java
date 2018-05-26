@@ -168,9 +168,7 @@ public class SlideElementEditDialog extends javax.swing.JDialog {
         Element newElement = (Element) slideElement.getElement().cloneNode(true);
         slideElement.getElement().setAttribute("description", fieldDescription.getText());
             this.parent.reloadLayoutButtons();
-        if (!changed) {
-            hide();
-        }else if (frameDS.getContentPane() instanceof DataSourcePanel && ((DataSourcePanel) frameDS.getContentPane()).updateElement(newElement)) {
+        if (frameDS.getContentPane() instanceof DataSourcePanel && ((DataSourcePanel) frameDS.getContentPane()).updateElement(newElement)) {
             slideElement.setElement(newElement);
             hide();
         } else {
@@ -179,9 +177,6 @@ public class SlideElementEditDialog extends javax.swing.JDialog {
     }//GEN-LAST:event_buttonOKActionPerformed
 
     private void buttonCancelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonCancelActionPerformed
-        if (isNew && !changed) {
-        } else if (changed) {
-        }
         hide();
     }//GEN-LAST:event_buttonCancelActionPerformed
 

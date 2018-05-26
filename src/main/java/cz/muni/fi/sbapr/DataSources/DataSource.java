@@ -16,7 +16,7 @@ import org.w3c.dom.Node;
  */
 public abstract class DataSource<T>{
     
-    private Element element;
+    protected Element element;
     
     /**
      *

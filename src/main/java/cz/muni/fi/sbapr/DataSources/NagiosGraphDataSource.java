@@ -103,6 +103,7 @@ public class NagiosGraphDataSource extends DataSource<byte[]> {
             shape.getSheet().removeShape(shape);
             picture.setAnchor(anchor);
         }catch(Exception ex){
+            System.err.println(ex.getMessage());
             System.err.println("Problem occured while updating shape "+shape.getShapeName()+" with "+getClass().getName());
         }
         return shape;

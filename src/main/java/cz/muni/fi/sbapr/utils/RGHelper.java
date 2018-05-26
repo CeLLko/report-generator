@@ -5,19 +5,16 @@
  */
 package cz.muni.fi.sbapr.utils;
 
-import Exceptions.TemplateParserException;
 import cz.muni.fi.sbapr.DataSources.DataSource;
 import cz.muni.fi.sbapr.Slide;
+import cz.muni.fi.sbapr.exceptions.TemplateParserException;
 import cz.muni.fi.sbapr.gui.DataSourcePanels.DataSourcePanel;
 import cz.muni.fi.sbapr.gui.DataSourcePanels.DefaultDataSourcePanel;
 import java.awt.Dialog;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.StringWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -108,7 +105,7 @@ public enum RGHelper {
             throw new TemplateParserException(ex.getMessage());
         }
     }
-    
+
     public void parse(File pptxFile) throws TemplateParserException {
         try {
             pptxEntry = File.createTempFile("template", "pptx");
@@ -122,7 +119,7 @@ public enum RGHelper {
             xPath = XPathFactory.newInstance().newXPath();
             doc.getDocumentElement().normalize();
             parseDataSources();
-            
+
             template = new XMLSlideShow(new FileInputStream(pptxFile));
             parseLayouts(template);
             initialized = true;
@@ -142,18 +139,23 @@ public enum RGHelper {
         return slides;
     }
 
-    private void parseDataSources(){
+    private void parseDataSources() throws TemplateParserException {
         IterableNodeList DSList = RGHelper.INSTANCE.getNodeListByName("dataSource");
         DSList.stream().filter(node -> node.getNodeType() == Node.ELEMENT_NODE).forEach(node -> {
+            Element element = (Element) node;
+            String id = element.getAttribute("id");
+            String fullClassName = element.getAttribute("type");
+            String fullPanelClassName = element.getAttribute("panel");
             try {
-                Element element = (Element) node;
-                String id = element.getAttribute("id");
-                String fullClassName = element.getAttribute("type");
-                String fullPanelClassName = element.getAttribute("panel");
                 this.dataSources.put(id, Class.forName(fullClassName));
+            } catch (ClassNotFoundException ex) {
+                this.dataSources.remove(id);
+                return;
+            }
+            try {
                 this.dataSourcePanels.put(id, Class.forName(fullPanelClassName));
             } catch (ClassNotFoundException ex) {
-                throw new IllegalArgumentException();
+                this.dataSourcePanels.put(id, null);
             }
 
         });
@@ -183,15 +185,15 @@ public enum RGHelper {
         try (FileOutputStream out = new FileOutputStream(xmlEntry)) {
             TransformerFactory transformerFactory = TransformerFactory.newInstance();
             Transformer transformer = transformerFactory.newTransformer();
-            
+
             StringWriter sw = new StringWriter();
             StreamResult result = new StreamResult(sw);
             DOMSource source = new DOMSource(doc);
             transformer.transform(source, result);
-            
+
             String xmlString = sw.toString();
             out.write(xmlString.getBytes(), 0, xmlString.getBytes().length);
-            
+
         } catch (IOException | TransformerException ex) {
             throw new TemplateParserException(ex.getMessage());
         }
@@ -205,7 +207,7 @@ public enum RGHelper {
     public ZipParameters getZipParams() {
         return zipParams;
     }
-    
+
     public Document getDoc() {
         return doc;
     }
@@ -254,7 +256,7 @@ public enum RGHelper {
     public DataSourcePanel getNewDataSourcePanelInstance(String className, Dialog cont) {
         try {
             return (DataSourcePanel) (dataSourcePanels.get(className).getConstructor(Dialog.class).newInstance(cont));
-        } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | SecurityException | IllegalArgumentException | InvocationTargetException ex) {
+        } catch (Exception ex) {
             return new DefaultDataSourcePanel(cont);
         }
     }

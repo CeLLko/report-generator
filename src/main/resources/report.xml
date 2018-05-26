@@ -12,6 +12,8 @@
         </dataSource>
         <dataSource id="OracleDataSource" panel="cz.muni.fi.sbapr.gui.DataSourcePanels.OracleDataSourcePanel" type="cz.muni.fi.sbapr.DataSources.OracleDataSource">
         </dataSource>
+        <dataSource id="PageDataSource" panel="cz.muni.fi.sbapr.gui.DataSourcePanels.EmptyDataSourcePanel" type="cz.muni.fi.sbapr.DataSources.PageDataSource">
+        </dataSource>
     </dataSources>
     <slides>
         

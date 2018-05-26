@@ -68,6 +68,7 @@ public class TextDataSource extends DataSource<String> {
         try {
             ((XSLFTextShape) shape).setText(getData());
         } catch (Exception ex) {
+            System.err.println(ex.getMessage());
             System.err.println("Problem occured while updating shape " + shape.getShapeName() + " with " + getClass().getName());
         }
         return shape;

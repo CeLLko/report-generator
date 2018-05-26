@@ -122,6 +122,7 @@ public class DateTimeDataSource extends DataSource<String> {
             ((XSLFTextShape) shape).clearText();
             ((XSLFTextShape) shape).appendText(getData(), false);
         } catch (Exception ex) {
+            System.err.println(ex.getMessage());
             System.err.println("Problem occured while updating shape " + shape.getShapeName() + " with " + getClass().getName());
         }
         return shape;

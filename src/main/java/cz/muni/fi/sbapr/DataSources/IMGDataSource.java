@@ -59,7 +59,7 @@ public class IMGDataSource extends DataSource<BufferedImage> {
     public BufferedImage getData() {
         try {
             BufferedImage img = ImageIO.read(url);
-            if (width.isPresent() && height.isPresent()) {
+            if (!width.isPresent() && !height.isPresent()) {
                 return img;
             } else {
                 Image tmp = img.getScaledInstance(width.get(), height.get(), Image.SCALE_SMOOTH);
@@ -98,6 +98,7 @@ public class IMGDataSource extends DataSource<BufferedImage> {
             shape.getSheet().removeShape(shape);
             picture.setAnchor(anchor);
         } catch (Exception ex) {
+            System.err.println(ex.getMessage());
             System.err.println("Problem occured while updating shape " + shape.getShapeName() + " with " + getClass().getName());
         }
         return picture;

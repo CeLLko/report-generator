@@ -7,8 +7,10 @@ package cz.muni.fi.sbapr;
 
 import cz.muni.fi.sbapr.utils.RGHelper;
 import cz.muni.fi.sbapr.utils.IterableNodeList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.Callable;
@@ -17,6 +19,7 @@ import java.util.concurrent.Executors;
 import org.apache.poi.xslf.usermodel.XSLFShape;
 import org.apache.poi.xslf.usermodel.XSLFSlide;
 import org.apache.poi.xslf.usermodel.XSLFSlideLayout;
+import org.apache.poi.xslf.usermodel.XSLFTextShape;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
